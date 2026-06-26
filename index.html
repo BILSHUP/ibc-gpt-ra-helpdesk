@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>IBC-GPT · RA Help Desk</title>
 <style>
   :root{
@@ -20,139 +20,128 @@
     --bg:#f4f7fb;
   }
   *{box-sizing:border-box}
+  html,body{height:100%}
   body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
        background:var(--bg);color:var(--ink);line-height:1.5;-webkit-text-size-adjust:100%}
   a{color:var(--blue)}
-  header{background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:#fff;padding:18px 16px 14px}
-  .wrap{max-width:920px;margin:0 auto;padding:0 16px}
-  header .wrap{padding:0}
+  /* full-height app shell: header + emergency pinned top, chat scrolls, composer pinned bottom */
+  .app{display:flex;flex-direction:column;height:100dvh;max-width:920px;margin:0 auto;background:var(--bg)}
+
+  header{background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:#fff;padding:12px 16px;flex:0 0 auto}
   .brand{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-  .brand h1{font-size:1.25rem;margin:0;font-weight:700;letter-spacing:.2px}
-  .brand .tag{font-size:.72rem;background:rgba(255,255,255,.18);padding:3px 8px;border-radius:20px;font-weight:600}
-  .sub{font-size:.82rem;opacity:.9;margin-top:4px}
-  /* search */
-  .searchbar{position:sticky;top:0;z-index:30;background:var(--blue-dark);padding:10px 0 12px;box-shadow:0 2px 8px rgba(0,0,0,.15)}
-  .searchbox{position:relative;max-width:920px;margin:0 auto;padding:0 16px}
-  #q{width:100%;padding:13px 14px 13px 42px;font-size:1rem;border:none;border-radius:10px;outline:none;
-     box-shadow:0 1px 4px rgba(0,0,0,.2)}
-  .si{position:absolute;left:30px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:1.05rem}
-  .hint{color:#cdd9ec;font-size:.74rem;margin:8px 16px 0;max-width:920px;}
-  .chips{display:flex;gap:7px;overflow-x:auto;padding:10px 16px 2px;max-width:920px;margin:0 auto;-webkit-overflow-scrolling:touch}
-  .chip{white-space:nowrap;font-size:.78rem;padding:6px 12px;border-radius:20px;border:1px solid var(--line);
-        background:var(--card);color:var(--muted);cursor:pointer;font-weight:600;flex:0 0 auto}
-  .chip.active{background:var(--blue);color:#fff;border-color:var(--blue)}
-  main{padding:18px 0 60px}
-  /* emergency */
-  .emergency{background:#fff;border:2px solid var(--red);border-radius:14px;padding:14px;margin-bottom:18px}
-  .emergency h2{color:var(--red);margin:0 0 4px;font-size:1.05rem;display:flex;align-items:center;gap:8px}
-  .calls{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
-  .call{display:flex;flex-direction:column;text-decoration:none;background:var(--red);color:#fff;border-radius:10px;
-        padding:10px 12px;font-weight:700}
-  .call small{font-weight:600;opacity:.92;font-size:.7rem;text-transform:uppercase;letter-spacing:.4px}
-  .call .num{font-size:1.05rem;margin-top:2px}
-  .call.alt{background:var(--blue)}
-  .call.ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}
-  .call.ghost small{color:var(--muted)}
-  .etip{font-size:.8rem;color:var(--muted);margin-top:10px;border-top:1px dashed var(--line);padding-top:8px}
-  /* count */
-  .count{font-size:.8rem;color:var(--muted);margin:0 0 10px}
-  /* cards */
-  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:11px;overflow:hidden;
-        box-shadow:0 1px 2px rgba(20,40,80,.04)}
-  .card .head{padding:13px 15px;cursor:pointer;display:flex;align-items:flex-start;gap:10px}
-  .card .head:hover{background:var(--light)}
-  .badge{flex:0 0 auto;font-size:.62rem;font-weight:800;letter-spacing:.5px;text-transform:uppercase;
+  .brand h1{font-size:1.1rem;margin:0;font-weight:700;letter-spacing:.2px}
+  .brand .tag{font-size:.68rem;background:rgba(255,255,255,.18);padding:3px 8px;border-radius:20px;font-weight:600}
+  .sub{font-size:.76rem;opacity:.9;margin-top:3px}
+
+  /* emergency strip (always visible) */
+  .estrip{flex:0 0 auto;background:#fff;border-bottom:1px solid var(--line);
+          display:flex;align-items:center;gap:8px;padding:9px 12px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .elabel{font-size:.7rem;font-weight:800;color:var(--red);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;flex:0 0 auto}
+  .ecall{display:flex;flex-direction:column;text-decoration:none;background:var(--red);color:#fff;border-radius:9px;
+         padding:6px 11px;font-weight:700;white-space:nowrap;flex:0 0 auto}
+  .ecall.alt{background:var(--blue)}
+  .ecall small{font-weight:600;opacity:.92;font-size:.62rem;text-transform:uppercase;letter-spacing:.3px}
+  .ecall .num{font-size:.95rem;margin-top:1px}
+  .emore{flex:0 0 auto;background:#fff;border:1px solid var(--line);color:var(--muted);font-weight:700;
+         font-size:.74rem;border-radius:9px;padding:7px 11px;cursor:pointer;white-space:nowrap}
+  .emore-panel{flex:0 0 auto;background:#fff7f6;border-bottom:1px solid var(--line);padding:10px 14px;font-size:.82rem;color:var(--muted)}
+  .emore-panel[hidden]{display:none}
+  .emore-panel a{color:var(--red-dark);font-weight:700;text-decoration:none}
+  .emore-panel .row{margin:3px 0}
+
+  /* chat transcript */
+  .chat{flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 14px 8px}
+  .msg{margin:0 0 14px;display:flex;flex-direction:column;animation:rise .22s ease}
+  @keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .msg.user{align-items:flex-end}
+  .bubble{max-width:88%;border-radius:16px;padding:11px 14px;font-size:.92rem;box-shadow:0 1px 2px rgba(20,40,80,.06)}
+  .msg.bot .bubble{background:var(--card);border:1px solid var(--line);border-top-left-radius:5px}
+  .msg.user .bubble{background:var(--blue);color:#fff;border-top-right-radius:5px}
+  .msg.user .bubble{font-weight:600}
+  .lead{font-size:.92rem;margin:0 0 9px}
+  .who{font-size:.66rem;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:0 0 4px;font-weight:800}
+
+  /* answer card inside a bot bubble */
+  .ans{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;max-width:96%}
+  .ans .head{padding:11px 14px;display:flex;align-items:flex-start;gap:9px;background:var(--light)}
+  .badge{flex:0 0 auto;font-size:.6rem;font-weight:800;letter-spacing:.5px;text-transform:uppercase;
          padding:4px 7px;border-radius:6px;margin-top:2px;color:#fff;background:var(--blue)}
   .badge.health{background:var(--green)}.badge.safety{background:var(--red)}
   .badge.conduct{background:#6b46c1}.badge.daily{background:var(--amber)}
   .badge.logistics{background:#0d7d8c}.badge.contacts{background:#334155}
-  .card h3{margin:0;font-size:.98rem;font-weight:700}
-  .card .teaser{font-size:.8rem;color:var(--muted);margin-top:2px}
-  .chev{margin-left:auto;color:var(--muted);transition:transform .2s;flex:0 0 auto;margin-top:2px}
-  .card.open .chev{transform:rotate(90deg)}
-  .body{display:none;padding:0 15px 15px;border-top:1px solid var(--line)}
-  .card.open .body{display:block}
-  .body h4{margin:14px 0 6px;font-size:.72rem;text-transform:uppercase;letter-spacing:.6px;color:var(--blue)}
+  .ans h3{margin:0;font-size:.96rem;font-weight:700}
+  .ans .teaser{font-size:.78rem;color:var(--muted);margin-top:2px}
+  .ans .body{padding:2px 14px 14px}
+  .body h4{margin:13px 0 6px;font-size:.7rem;text-transform:uppercase;letter-spacing:.6px;color:var(--blue)}
   .body ol,.body ul{margin:0;padding-left:20px}
-  .body li{margin:4px 0;font-size:.9rem}
-  .body p{font-size:.9rem;margin:6px 0}
+  .body li{margin:4px 0;font-size:.88rem}
+  .body p{font-size:.88rem;margin:6px 0}
   .pill{display:inline-flex;align-items:center;gap:5px;font-size:.8rem;background:var(--light);border:1px solid var(--line);
-        border-radius:8px;padding:5px 9px;margin:4px 6px 0 0;text-decoration:none;color:var(--ink)}
+        border-radius:8px;padding:6px 10px;margin:5px 6px 0 0;text-decoration:none;color:var(--ink)}
   .pill.tel{background:#fdecea;border-color:#f5c6c0;color:var(--red-dark);font-weight:700}
   .pill.link{background:#eaf2fc;border-color:#cfe0f7;color:var(--blue-dark);font-weight:600}
-  .section-title{font-size:.8rem;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);
-                 margin:22px 0 9px;font-weight:800}
-  .empty{text-align:center;color:var(--muted);padding:40px 20px}
-  .empty b{color:var(--ink)}
-  footer{border-top:1px solid var(--line);padding:18px 0 40px;color:var(--muted);font-size:.78rem}
-  footer a{color:var(--blue)}
-  .ref-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
-  @media(max-width:560px){.ref-grid{grid-template-columns:1fr}}
-  .ref{display:flex;flex-direction:column;background:#fff;border:1px solid var(--line);border-radius:10px;
-       padding:9px 11px;text-decoration:none;color:var(--ink)}
-  .ref small{color:var(--muted);font-size:.72rem}
-  .ref b{font-size:.88rem;margin-top:1px}
-  kbd{background:#fff;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:1px 6px;font-size:.78rem;color:var(--muted)}
+
+  /* suggestion chips inside bot messages */
+  .sugs{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+  .sug{font-size:.8rem;padding:7px 12px;border-radius:18px;border:1px solid var(--blue);
+       background:#fff;color:var(--blue-dark);cursor:pointer;font-weight:600;line-height:1.2}
+  .sug:hover{background:var(--light)}
+  .sug.cat{border-color:var(--line);color:var(--muted)}
+
+  /* typing dots */
+  .typing{display:inline-flex;gap:4px;padding:4px 2px}
+  .typing i{width:7px;height:7px;border-radius:50%;background:var(--muted);opacity:.5;animation:blink 1.2s infinite}
+  .typing i:nth-child(2){animation-delay:.2s}.typing i:nth-child(3){animation-delay:.4s}
+  @keyframes blink{0%,80%,100%{opacity:.25}40%{opacity:.9}}
+
+  /* composer */
+  .quickrow{flex:0 0 auto;display:flex;gap:7px;overflow-x:auto;padding:8px 12px 2px;-webkit-overflow-scrolling:touch;background:var(--bg)}
+  .quick{white-space:nowrap;font-size:.78rem;padding:6px 12px;border-radius:18px;border:1px solid var(--line);
+         background:var(--card);color:var(--muted);cursor:pointer;font-weight:600;flex:0 0 auto}
+  .quick:hover{border-color:var(--blue);color:var(--blue)}
+  .composer{flex:0 0 auto;display:flex;gap:8px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));
+            background:var(--bg);border-top:1px solid var(--line)}
+  #q{flex:1;padding:12px 14px;font-size:1rem;border:1px solid var(--line);border-radius:22px;outline:none;background:#fff;
+     box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  #q:focus{border-color:var(--blue)}
+  .send{flex:0 0 auto;width:46px;height:46px;border:none;border-radius:50%;background:var(--blue);color:#fff;
+        font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .send:active{background:var(--blue-dark)}
 </style>
 </head>
 <body>
-<header>
-  <div class="wrap">
+<div class="app">
+
+  <header>
     <div class="brand">
       <h1>IBC-GPT · RA Help Desk</h1>
       <span class="tag">Summer 2026</span>
     </div>
-    <div class="sub">Columbia Pre-College · Internship in Building Community — type your situation, get the steps + where to find it.</div>
-  </div>
-</header>
+    <div class="sub">Columbia Pre-College · tell it your situation, get the steps + where to find it.</div>
+  </header>
 
-<div class="searchbar">
-  <div class="searchbox">
-    <span class="si">&#128269;</span>
-    <input id="q" type="search" autocomplete="off" placeholder="Describe your situation… e.g. “student is sick”, “late to curfew”, “homesick”">
+  <div class="estrip">
+    <span class="elabel">&#128680; Emergency</span>
+    <a class="ecall" href="tel:2128545555"><small>On-campus · Public Safety</small><span class="num">212-854-5555</span></a>
+    <a class="ecall alt" href="tel:911"><small>Off-campus</small><span class="num">911</span></a>
+    <button class="emore" id="emoreBtn">More&nbsp;&#9662;</button>
   </div>
-  <div class="chips" id="chips"></div>
-  <div class="hint">Tip: tap a red number on a phone to call it. Schedules &amp; rosters link to the live Google docs so they stay current.</div>
+  <div class="emore-panel" id="emorePanel" hidden>
+    <div class="row"><b>Carman On-Duty SRA (SAVE THIS):</b> <a href="tel:2128140027">212-814-0027</a></div>
+    <div class="row"><b>RD on Duty:</b> <a href="tel:3324655827">332-465-5827</a></div>
+    <div class="row"><b>SRA on Duty (JJ + Wallach):</b> <a href="tel:9173644454">917-364-4454</a></div>
+    <div class="row" style="margin-top:6px;font-style:italic">On campus: call Public Safety, then notify the RD on duty. Off campus: call 911, then your Director/RD. File a Maxient report after any incident.</div>
+  </div>
+
+  <div class="chat" id="chat"></div>
+
+  <div class="quickrow" id="quickrow"></div>
+  <form class="composer" id="composer" autocomplete="off">
+    <input id="q" type="text" placeholder="Describe your situation…  e.g. “student is sick”, “late to curfew”">
+    <button class="send" type="submit" aria-label="Send">&#10148;</button>
+  </form>
+
 </div>
-
-<main class="wrap">
-
-  <div class="emergency">
-    <h2>&#128680; Emergency — call first, then report</h2>
-    <div class="calls">
-      <a class="call" href="tel:2128545555"><small>On-campus emergency · Public Safety (24/7)</small><span class="num">212-854-5555</span></a>
-      <a class="call alt" href="tel:911"><small>Off-campus emergency</small><span class="num">911 → then SRA/RD</span></a>
-      <a class="call alt" href="tel:2128140027"><small>Carman On-Duty SRA phone — SAVE THIS</small><span class="num">212-814-0027</span></a>
-      <a class="call ghost" href="tel:3324655827"><small>RD on Duty</small><span class="num">332-465-5827</span></a>
-    </div>
-    <div class="etip">On campus: call Public Safety, then notify the RD on duty. Off campus: call 911, then your Director/RD on duty. File a Maxient report after any incident. SRA on Duty (JJ + Wallach): <a href="tel:9173644454">917-364-4454</a>.</div>
-  </div>
-
-  <p class="count" id="count"></p>
-  <div id="results"></div>
-
-  <div class="empty" id="empty" style="display:none">
-    <p>&#128269; No match for <b id="qt"></b>.</p>
-    <p>Try simpler words (“sick”, “curfew”, “gas”, “lockout”, “key”, “receipt”) or browse the categories above.</p>
-  </div>
-
-  <div class="section-title">Quick reference</div>
-  <div class="ref-grid">
-    <a class="ref" href="https://docs.google.com/spreadsheets/d/1krNw90MEuDc8hcWKo29Cg3dCg-3xtjaPNgEKhJ4XNtQ/edit" target="_blank"><small>Live doc</small><b>Master Contact Sheet &#8599;</b></a>
-    <a class="ref" href="https://docs.google.com/spreadsheets/d/10rJl4f7dhTc5tyqL2LxyuWBMZxqbYN_MJi8Ho_3Gk1U/edit" target="_blank"><small>Live doc</small><b>On-Call Sheet &#8599;</b></a>
-    <a class="ref" href="https://docs.google.com/spreadsheets/d/1_uycM9W1hg-4yT8tgkxaHHPtzWiMs_yiL2K4UwuksSA/edit" target="_blank"><small>Live doc</small><b>RA Team Rosters &#8599;</b></a>
-    <a class="ref" href="https://docs.google.com/document/d/19fq9yWgzrpYA5QVgYNfs5YgBhrdauUBGunhgK4X4mg8/edit" target="_blank"><small>Live doc</small><b>RA Handbook 2026 &#8599;</b></a>
-    <a class="ref" href="https://columbia.vndly.com/candidate/timesheets" target="_blank"><small>By Sun midnight</small><b>Timesheet (VNDLY) &#8599;</b></a>
-    <a class="ref" href="https://cm.maxient.com/reportingform.php?ColumbiaUniv&layout_id=11" target="_blank"><small>Before 9am next day</small><b>Incident Report (Maxient) &#8599;</b></a>
-  </div>
-
-</main>
-
-<footer class="wrap">
-  Built from the IBC RA Handbook (Summer 2026), SRA Master Doc, and the International Student Scenarios.
-  Numbers and policies were transcribed from those source docs — always defer to your SRA/RD and the live documents if something has changed.
-  <br><br><b>IBC-GPT</b> · last refreshed June 26, 2026.
-</footer>
 
 <script>
 /* ---------- KNOWLEDGE BASE ---------- */
@@ -238,6 +227,17 @@ const DATA = [
   contacts:[["Public Safety","2128545555"]],
   links:[["Gender-Based Misconduct form","https://bit.ly/gbmreport"]]},
 
+ {cat:"safety",title:"Suspected alcohol, drugs, or an intoxicated student",
+  tags:"alcohol drunk drinking beer drugs weed marijuana vape vaping smoking cigarette high intoxicated under the influence substance paraphernalia possession smell hungover",
+  teaser:"Safety first, not enforcement. Dangerous intoxication = medical emergency → Public Safety. Don't force a search; document + notify RD + Maxient.",
+  steps:["Students possessing or using alcohol or illegal drugs is prohibited (everyone here is a minor). Smoking/vaping — and even <b>possessing</b> smoking or vaping devices — is also banned in the residence halls.",
+         "Your first job is <b>safety, not enforcement</b>. Signs of dangerous intoxication are a <b>medical emergency</b> — call Public Safety <b>212-854-5555</b> (or 911 off campus) now. Never assume an intoxicated student gave accurate info about what or how much they took.",
+         "Do not physically search a student or wrestle items away. Calmly ask them to hand over any alcohol/substances/devices; if they refuse or it escalates, step back and contact your SRA/RD.",
+         "Notify the <b>SRA and RD on duty</b> and stay with the student until support arrives.",
+         "Document observable facts (what you saw/smelled, time, who was present) and file a Maxient report — stick to behavior, avoid labels."],
+  contacts:[["Public Safety (emergency)","2128545555"],["RD on Duty","3324655827"],["Carman On-Duty SRA","2128140027"]],
+  links:[["Incident Report (Maxient)","https://cm.maxient.com/reportingform.php?ColumbiaUniv&layout_id=11"]]},
+
  {cat:"safety",title:"When to call Public Safety / NYPD",
   tags:"public safety nypd crisis call when threshold danger help unsure",
   teaser:"Call 212-854-5555 if a situation is nearing crisis. When unsure, err on the side of calling.",
@@ -303,6 +303,16 @@ const DATA = [
          "<b>After:</b> update your supervisor on the outcome, write an Incident Report, and check in on the students within 24–48 hours.",
          "<b>Do NOT mediate</b> physical altercations, bias/harassment, or Title IX incidents — escalate those."],
   contacts:[["Carman On-Duty SRA","2128140027"]],
+  links:[["Incident Report (Maxient)","https://cm.maxient.com/reportingform.php?ColumbiaUniv&layout_id=11"]]},
+
+ {cat:"daily",title:"Student is skipping or refusing to go to class",
+  tags:"class skipping skip absent attendance refuse won't go cutting missing lecture academic truant won't get up oversleeping seminar",
+  teaser:"Attendance is required unless ill. “Too sick for class” = must go to Health Services. Parents are notified of absences; log it + loop in your supervisor.",
+  steps:["Students must attend class unless they're ill. <b>Parents/legal guardians are notified of absences</b>, and multiple missed sessions can cost a student their Certificate of Completion or Letter of Evaluation — even if excused.",
+         "If a student says they're <b>too sick</b> for class, they must go to <b>Health Services</b> (accompanied by an RA/PA) — they can't simply stay in their room.",
+         "If it's not illness (oversleeping, avoidance, low motivation), encourage and help problem-solve; persistent refusal or withdrawal can signal a deeper concern.",
+         "Notify your SRA/RD, and file an Incident Report for repeated absences or a student of concern so the CARE team can follow up."],
+  contacts:[["Health Services","2128542284"],["Carman On-Duty SRA","2128140027"]],
   links:[["Incident Report (Maxient)","https://cm.maxient.com/reportingform.php?ColumbiaUniv&layout_id=11"]]},
 
  {cat:"daily",title:"International student homesick / struggling to adjust",
@@ -389,6 +399,17 @@ const DATA = [
   contacts:[],
   links:[["Off-Campus Request Form","https://docs.google.com/forms/d/e/1FAIpQLSfz_THn_s1KjDJzqCuNfLxIAGtOhGkIT7hJLYtd0ylzED7S2g/viewform"]]},
 
+ {cat:"logistics",title:"Student wants a guest or visitor in the building",
+  tags:"guest visitor friend parent family girlfriend boyfriend outside person sign in lobby commuter another floor room not allowed someone over",
+  teaser:"No visitors in the residence halls — including parents, family, classmates, and other summer programs. Only move-in/move-out days.",
+  steps:["Residential students may <b>not</b> have visitors in the residence halls. This includes parents/legal guardians, family members, classmates, and students from other on-campus summer programs.",
+         "The only exception: parents/guardians and family may help a student move in or out on the <b>first and last days</b> of the program.",
+         "Students may only enter the building, floor, and room they're <b>assigned</b> to — not a friend's floor or room.",
+         "Commuter and online students are not permitted in the residence halls at all; commuter students must leave campus daily by <b>6:30–7:00 PM</b>.",
+         "If someone won't leave or you're unsure, contact your SRA/RD and the front-desk Public Safety guard."],
+  contacts:[["Carman On-Duty SRA","2128140027"],["Public Safety (non-emergency)","2128542797"]],
+  links:[]},
+
  {cat:"logistics",title:"Which report form do I file?",
   tags:"report form incident maxient which form student of concern gbm pom protection minors conduct violation",
   teaser:"Policy violation / student of concern → Maxient. GBM → bit.ly/gbmreport. Minors → bit.ly/pomreport.",
@@ -402,6 +423,17 @@ const DATA = [
    <p>Writing tip: focus on <b>observable behaviors</b>, give specifics (dates/counts), and avoid labels like “acting crazy.”</p>`,
   contacts:[],
   links:[["Incident Report (Maxient)","https://cm.maxient.com/reportingform.php?ColumbiaUniv&layout_id=11"]]},
+
+ /* ============ HEALTH (resources) ============ */
+ {cat:"health",title:"Sexual health resources (condoms / Plan B)",
+  tags:"condom condoms safe sex sexual health plan b plan-b contraception protection birth control std emergency contraception vending machine",
+  teaser:"RAs can't hand out condoms, but can point students to the John Jay lobby vending machine + free condoms at Health Services.",
+  steps:["RAs are <b>not permitted to distribute condoms</b> to students — but you can share where to get them.",
+         "A safe-sex / sexual-health / <b>Plan-B vending machine</b> is in the lobby of <b>John Jay Hall</b>.",
+         "<b>Free condoms</b> are available at Health Services and outside the elevator on the <b>8th floor of Lerner Hall</b>.",
+         "For any health concern, students can be accompanied to Health Services (John Jay, 3rd floor)."],
+  contacts:[["Health Services","2128542284"]],
+  links:[]},
 
  /* ============ CONTACTS ============ */
  {cat:"contacts",title:"Key phone numbers (on-duty + emergency)",
@@ -451,30 +483,53 @@ const DATA = [
    </ul>`,
   contacts:[],
   links:[["Full Master Contact Sheet","https://docs.google.com/spreadsheets/d/1krNw90MEuDc8hcWKo29Cg3dCg-3xtjaPNgEKhJ4XNtQ/edit"]]},
+
+ /* ============ QUICK REFERENCE (live docs) ============ */
+ {cat:"logistics",title:"Quick links — live docs & forms",
+  tags:"links docs forms roster on-call schedule handbook timesheet maxient master contact sheet google drive reference",
+  teaser:"Jump to the live Google docs — they stay current.",
+  steps:[],
+  custom:`<p>These point to the <b>live</b> Google docs so they're never stale:</p>`,
+  contacts:[],
+  links:[["Master Contact Sheet","https://docs.google.com/spreadsheets/d/1krNw90MEuDc8hcWKo29Cg3dCg-3xtjaPNgEKhJ4XNtQ/edit"],
+         ["On-Call Sheet","https://docs.google.com/spreadsheets/d/10rJl4f7dhTc5tyqL2LxyuWBMZxqbYN_MJi8Ho_3Gk1U/edit"],
+         ["RA Team Rosters","https://docs.google.com/spreadsheets/d/1_uycM9W1hg-4yT8tgkxaHHPtzWiMs_yiL2K4UwuksSA/edit"],
+         ["RA Handbook 2026","https://docs.google.com/document/d/19fq9yWgzrpYA5QVgYNfs5YgBhrdauUBGunhgK4X4mg8/edit"],
+         ["Timesheet (VNDLY)","https://columbia.vndly.com/candidate/timesheets"],
+         ["Incident Report (Maxient)","https://cm.maxient.com/reportingform.php?ColumbiaUniv&layout_id=11"]]},
 ];
 
-const CATS=[["all","All"],["safety","Safety & crisis"],["health","Health"],["daily","Daily ops"],["logistics","Logistics & forms"],["contacts","Contacts"]];
+const CATS=[["safety","Safety & crisis"],["health","Health"],["daily","Daily ops"],["logistics","Logistics & forms"],["contacts","Contacts"]];
 
-/* ---------- RENDER ---------- */
-const results=document.getElementById('results');
-const chipWrap=document.getElementById('chips');
+/* starter quick-chips above the composer: [label, query] */
+const STARTERS=[
+  ["Student is sick","student is sick"],
+  ["Late to curfew","late to curfew"],
+  ["Emotionally distressed","student is distressed"],
+  ["Lockout","lockout"],
+  ["Which form?","which report form"],
+  ["Phone numbers","key phone numbers"],
+  ["Browse all","__browse__"],
+];
+
+/* ---------- ELEMENTS ---------- */
+const chat=document.getElementById('chat');
+const form=document.getElementById('composer');
 const q=document.getElementById('q');
-const countEl=document.getElementById('count');
-const emptyEl=document.getElementById('empty');
-let active="all";
+const quickrow=document.getElementById('quickrow');
 
-CATS.forEach(([id,label])=>{
-  const c=document.createElement('span');
-  c.className='chip'+(id==='all'?' active':'');
-  c.textContent=label;c.dataset.cat=id;
-  c.onclick=()=>{active=id;[...chipWrap.children].forEach(x=>x.classList.toggle('active',x.dataset.cat===id));render();};
-  chipWrap.appendChild(c);
+document.getElementById('emoreBtn').addEventListener('click',e=>{
+  const p=document.getElementById('emorePanel');
+  p.hidden=!p.hidden;
+  e.currentTarget.innerHTML=(p.hidden?'More&nbsp;&#9662;':'Less&nbsp;&#9652;');
 });
 
-function telLink(n){const d=n.replace(/[^0-9]/g,'');return `<a class="pill tel" href="tel:${d}">&#128222; ${n}</a>`;}
-function extLink(l){const isMail=l[1].startsWith('mailto');return `<a class="pill link" href="${l[1]}" ${isMail?'':'target="_blank"'}>${isMail?'&#9993;':'&#128279;'} ${l[0]}</a>`;}
+/* ---------- HELPERS ---------- */
+function esc(s){return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function telLink(n){const d=n[1].replace(/[^0-9]/g,'');return `<a class="pill tel" href="tel:${d}">&#128222; ${n[0]}</a>`;}
+function extLink(l){const isMail=l[1].startsWith('mailto');return `<a class="pill link" href="${l[1]}" ${isMail?'':'target="_blank" rel="noopener"'}>${isMail?'&#9993;':'&#128279;'} ${l[0]}</a>`;}
 
-function cardHTML(d,i){
+function answerBody(d){
   let body='';
   if(d.steps&&d.steps.length){body+='<h4>What to do</h4><ol>'+d.steps.map(s=>`<li>${s}</li>`).join('')+'</ol>';}
   if(d.custom){body+=d.custom;}
@@ -485,37 +540,166 @@ function cardHTML(d,i){
     if(d.links)body+=d.links.map(extLink).join('');
     body+='</div>';
   }
-  return `<div class="card" data-i="${i}">
-     <div class="head" onclick="this.parentNode.classList.toggle('open')">
-       <span class="badge ${d.cat}">${d.cat}</span>
-       <div><h3>${d.title}</h3><div class="teaser">${d.teaser}</div></div>
-       <span class="chev">&#9656;</span>
-     </div>
-     <div class="body">${body}</div>
-   </div>`;
+  return body;
+}
+function answerCard(d){
+  return `<div class="ans"><div class="head"><span class="badge ${d.cat}">${d.cat}</span>
+     <div><h3>${d.title}</h3><div class="teaser">${d.teaser}</div></div></div>
+     <div class="body">${answerBody(d)}</div></div>`;
 }
 
-function render(){
-  const term=q.value.trim().toLowerCase();
-  const words=term.split(/\s+/).filter(Boolean);
-  let list=DATA.map((d,i)=>({d,i}));
-  if(active!=='all')list=list.filter(x=>x.d.cat===active||(active==='health'&&x.d.cat==='health'));
-  if(words.length){
-    list=list.map(x=>{
-      const hay=(x.d.title+' '+x.d.tags+' '+x.d.teaser).toLowerCase();
-      let score=0;words.forEach(w=>{if(hay.includes(w))score++;if(x.d.title.toLowerCase().includes(w))score+=2;});
-      return {...x,score};
-    }).filter(x=>x.score>0).sort((a,b)=>b.score-a.score);
-  }
-  if(!list.length){results.innerHTML='';emptyEl.style.display='block';countEl.textContent='';
-    document.getElementById('qt').textContent=term;return;}
-  emptyEl.style.display='none';
-  countEl.textContent=`${list.length} ${list.length===1?'answer':'answers'}${term?` for “${term}”`:''}`;
-  results.innerHTML=list.map(x=>cardHTML(x.d,x.i)).join('');
-  if(words.length&&list.length<=2){const f=results.querySelector('.card');if(f)f.classList.add('open');}
+/* common words that appear in almost every entry — ignored so the meaningful
+   word ("drunk", "curfew", "lockout") actually drives the match */
+const STOP=new Set("a an the is are am was were be been being to of in on at it its this that these those my your our their his her them they i im i'm we he she you with and or for as do does did has have had will would can could should i'd student students someone somebody anybody person resident residents kid kids guy girl boy how what when where who why help need needs got get my".split(/\s+/));
+
+/* score DATA against a free-text situation */
+function search(term){
+  let words=term.toLowerCase().replace(/[^a-z0-9'\s]/g,' ').split(/\s+/).filter(Boolean);
+  const meaningful=words.filter(w=>!STOP.has(w));
+  if(meaningful.length)words=meaningful;   // keep stopwords only if that's all there is
+  if(!words.length)return [];
+  return DATA.map((d,i)=>{
+    const hay=(d.title+' '+d.tags+' '+d.teaser).toLowerCase();
+    const titleL=d.title.toLowerCase();
+    let score=0;
+    words.forEach(w=>{if(hay.includes(w))score++;if(titleL.includes(w))score+=2;});
+    return {d,i,score};
+  }).filter(x=>x.score>0).sort((a,b)=>b.score-a.score);
 }
-q.addEventListener('input',render);
-render();
+
+/* ---------- CHAT RENDERING ---------- */
+function scrollDown(){chat.scrollTop=chat.scrollHeight;}
+
+function addUser(text){
+  const m=document.createElement('div');m.className='msg user';
+  m.innerHTML=`<div class="bubble">${esc(text)}</div>`;
+  chat.appendChild(m);scrollDown();
+}
+/* sugs: array of [label, action] where action is a query string ("__cat:safety", "__browse__", or plain text) */
+function addBot(html,sugs){
+  const m=document.createElement('div');m.className='msg bot';
+  let inner=`<div class="bubble">${html}`;
+  if(sugs&&sugs.length){
+    inner+='<div class="sugs">'+sugs.map(s=>{
+      const isCat=s[1].startsWith('__cat:');
+      return `<button class="sug${isCat?' cat':''}" data-act="${esc(s[1])}">${esc(s[0])}</button>`;
+    }).join('')+'</div>';
+  }
+  inner+='</div>';
+  m.innerHTML=inner;
+  chat.appendChild(m);scrollDown();
+}
+function showTyping(){
+  const m=document.createElement('div');m.className='msg bot';m.id='typing';
+  m.innerHTML='<div class="bubble"><span class="typing"><i></i><i></i><i></i></span></div>';
+  chat.appendChild(m);scrollDown();
+}
+function clearTyping(){const t=document.getElementById('typing');if(t)t.remove();}
+
+/* lead-in phrasing by category */
+function leadIn(d){
+  if(d.cat==='safety')return "Let's keep everyone safe. Here's the protocol:";
+  if(d.cat==='health')return "Here's how to take care of this:";
+  if(d.cat==='contacts')return "Here you go:";
+  return "Here's what to do:";
+}
+
+/* ---------- ACTIONS ---------- */
+function relatedChips(topIdx,results){
+  // up to 3 other strong matches, else same-category topics
+  const out=[];
+  results.filter(r=>r.i!==topIdx).slice(0,3).forEach(r=>out.push([r.d.title,r.d.title]));
+  return out;
+}
+
+function respondToQuery(term){
+  const results=search(term);
+  showTyping();
+  setTimeout(()=>{
+    clearTyping();
+    if(!results.length){
+      addBot(`I couldn't find a match for <b>“${esc(term)}”</b>. Try simpler words — like “sick”, “curfew”, “lockout”, “key”, “receipt”, or “distressed” — or browse the categories.`,
+        [["Browse all topics","__browse__"]]);
+      return;
+    }
+    const top=results[0];
+    let html=`<p class="lead">${leadIn(top.d)}</p>`+answerCard(top.d);
+    const sugs=relatedChips(top.i,results);
+    if(sugs.length)addBot(html,[...sugs,["Browse all","__browse__"]]);
+    else addBot(html,[["Browse all","__browse__"]]);
+  },260);
+}
+
+function showCardByTitle(title){
+  const idx=DATA.findIndex(d=>d.title===title);
+  if(idx<0){respondToQuery(title);return;}
+  const d=DATA[idx];
+  showTyping();
+  setTimeout(()=>{
+    clearTyping();
+    // related = same category, excluding self
+    const rel=DATA.map((x,i)=>({x,i})).filter(o=>o.x.cat===d.cat&&o.i!==idx).slice(0,3).map(o=>[o.x.title,o.x.title]);
+    addBot(`<p class="lead">${leadIn(d)}</p>`+answerCard(d),[...rel,["Browse all","__browse__"]]);
+  },220);
+}
+
+function browseAll(){
+  showTyping();
+  setTimeout(()=>{
+    clearTyping();
+    const chips=CATS.map(c=>[c[1],"__cat:"+c[0]]);
+    addBot("What do you need? Pick a category, or just describe your situation in the box below.",chips);
+  },200);
+}
+function browseCat(cat){
+  const items=DATA.filter(d=>d.cat===cat).map(d=>[d.title,d.title]);
+  const label=(CATS.find(c=>c[0]===cat)||[,cat])[1];
+  showTyping();
+  setTimeout(()=>{clearTyping();addBot(`<b>${label}</b> — tap a topic:`,items);},200);
+}
+
+/* route a chip/starter action */
+function handleAction(act){
+  if(act==='__browse__'){browseAll();return;}
+  if(act.startsWith('__cat:')){browseCat(act.slice(6));return;}
+  // exact topic title? show directly. otherwise free-text search.
+  if(DATA.some(d=>d.title===act))showCardByTitle(act);
+  else respondToQuery(act);
+}
+
+/* ---------- WIRE-UP ---------- */
+chat.addEventListener('click',e=>{
+  const b=e.target.closest('.sug');
+  if(!b)return;
+  const act=b.dataset.act;
+  // echo as a user turn when it's a real topic/question (not the meta browse chips)
+  if(act!=='__browse__'&&!act.startsWith('__cat:'))addUser(b.textContent);
+  handleAction(act);
+});
+
+form.addEventListener('submit',e=>{
+  e.preventDefault();
+  const text=q.value.trim();
+  if(!text)return;
+  addUser(text);
+  q.value='';
+  respondToQuery(text);
+});
+
+/* starter chips */
+STARTERS.forEach(([label,query])=>{
+  const c=document.createElement('button');
+  c.type='button';c.className='quick';c.textContent=label;
+  c.addEventListener('click',()=>{
+    if(query!=='__browse__')addUser(label);
+    handleAction(query);
+  });
+  quickrow.appendChild(c);
+});
+
+/* greeting */
+addBot("Hi! I'm <b>IBC-GPT</b>, your RA help desk. Tell me what's happening — like <i>“a student is sick”</i> or <i>“someone's late to curfew”</i> — and I'll give you the steps and who to call.<br><br>For a real emergency, use the red bar up top. 🚨",
+  STARTERS.filter(s=>s[1]!=='__browse__').slice(0,4).map(s=>[s[0],s[1]]).concat([["Browse all topics","__browse__"]]));
 </script>
 </body>
 </html>
