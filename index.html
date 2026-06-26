@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IBC-GPT · RA Help Desk</title>
+<style>
+  :root{
+    --blue:#1d4f91;        /* Columbia blue */
+    --blue-dark:#143a6b;
+    --light:#eef4fb;
+    --red:#c0392b;
+    --red-dark:#9b2618;
+    --amber:#b7791f;
+    --green:#1f7a4d;
+    --ink:#1a2230;
+    --muted:#5a6678;
+    --line:#dce4ef;
+    --card:#ffffff;
+    --bg:#f4f7fb;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+       background:var(--bg);color:var(--ink);line-height:1.5;-webkit-text-size-adjust:100%}
+  a{color:var(--blue)}
+  header{background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:#fff;padding:18px 16px 14px}
+  .wrap{max-width:920px;margin:0 auto;padding:0 16px}
+  header .wrap{padding:0}
+  .brand{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .brand h1{font-size:1.25rem;margin:0;font-weight:700;letter-spacing:.2px}
+  .brand .tag{font-size:.72rem;background:rgba(255,255,255,.18);padding:3px 8px;border-radius:20px;font-weight:600}
+  .sub{font-size:.82rem;opacity:.9;margin-top:4px}
+  /* search */
+  .searchbar{position:sticky;top:0;z-index:30;background:var(--blue-dark);padding:10px 0 12px;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+  .searchbox{position:relative;max-width:920px;margin:0 auto;padding:0 16px}
+  #q{width:100%;padding:13px 14px 13px 42px;font-size:1rem;border:none;border-radius:10px;outline:none;
+     box-shadow:0 1px 4px rgba(0,0,0,.2)}
+  .si{position:absolute;left:30px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:1.05rem}
+  .hint{color:#cdd9ec;font-size:.74rem;margin:8px 16px 0;max-width:920px;}
+  .chips{display:flex;gap:7px;overflow-x:auto;padding:10px 16px 2px;max-width:920px;margin:0 auto;-webkit-overflow-scrolling:touch}
+  .chip{white-space:nowrap;font-size:.78rem;padding:6px 12px;border-radius:20px;border:1px solid var(--line);
+        background:var(--card);color:var(--muted);cursor:pointer;font-weight:600;flex:0 0 auto}
+  .chip.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+  main{padding:18px 0 60px}
+  /* emergency */
+  .emergency{background:#fff;border:2px solid var(--red);border-radius:14px;padding:14px;margin-bottom:18px}
+  .emergency h2{color:var(--red);margin:0 0 4px;font-size:1.05rem;display:flex;align-items:center;gap:8px}
+  .calls{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+  .call{display:flex;flex-direction:column;text-decoration:none;background:var(--red);color:#fff;border-radius:10px;
+        padding:10px 12px;font-weight:700}
+  .call small{font-weight:600;opacity:.92;font-size:.7rem;text-transform:uppercase;letter-spacing:.4px}
+  .call .num{font-size:1.05rem;margin-top:2px}
+  .call.alt{background:var(--blue)}
+  .call.ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}
+  .call.ghost small{color:var(--muted)}
+  .etip{font-size:.8rem;color:var(--muted);margin-top:10px;border-top:1px dashed var(--line);padding-top:8px}
+  /* count */
+  .count{font-size:.8rem;color:var(--muted);margin:0 0 10px}
+  /* cards */
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:11px;overflow:hidden;
+        box-shadow:0 1px 2px rgba(20,40,80,.04)}
+  .card .head{padding:13px 15px;cursor:pointer;display:flex;align-items:flex-start;gap:10px}
+  .card .head:hover{background:var(--light)}
+  .badge{flex:0 0 auto;font-size:.62rem;font-weight:800;letter-spacing:.5px;text-transform:uppercase;
+         padding:4px 7px;border-radius:6px;margin-top:2px;color:#fff;background:var(--blue)}
+  .badge.health{background:var(--green)}.badge.safety{background:var(--red)}
+  .badge.conduct{background:#6b46c1}.badge.daily{background:var(--amber)}
+  .badge.logistics{background:#0d7d8c}.badge.contacts{background:#334155}
+  .card h3{margin:0;font-size:.98rem;font-weight:700}
+  .card .teaser{font-size:.8rem;color:var(--muted);margin-top:2px}
+  .chev{margin-left:auto;color:var(--muted);transition:transform .2s;flex:0 0 auto;margin-top:2px}
+  .card.open .chev{transform:rotate(90deg)}
+  .body{display:none;padding:0 15px 15px;border-top:1px solid var(--line)}
+  .card.open .body{display:block}
+  .body h4{margin:14px 0 6px;font-size:.72rem;text-transform:uppercase;letter-spacing:.6px;color:var(--blue)}
+  .body ol,.body ul{margin:0;padding-left:20px}
+  .body li{margin:4px 0;font-size:.9rem}
+  .body p{font-size:.9rem;margin:6px 0}
+  .pill{display:inline-flex;align-items:center;gap:5px;font-size:.8rem;background:var(--light);border:1px solid var(--line);
+        border-radius:8px;padding:5px 9px;margin:4px 6px 0 0;text-decoration:none;color:var(--ink)}
+  .pill.tel{background:#fdecea;border-color:#f5c6c0;color:var(--red-dark);font-weight:700}
+  .pill.link{background:#eaf2fc;border-color:#cfe0f7;color:var(--blue-dark);font-weight:600}
+  .section-title{font-size:.8rem;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);
+                 margin:22px 0 9px;font-weight:800}
+  .empty{text-align:center;color:var(--muted);padding:40px 20px}
+  .empty b{color:var(--ink)}
+  footer{border-top:1px solid var(--line);padding:18px 0 40px;color:var(--muted);font-size:.78rem}
+  footer a{color:var(--blue)}
+  .ref-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+  @media(max-width:560px){.ref-grid{grid-template-columns:1fr}}
+  .ref{display:flex;flex-direction:column;background:#fff;border:1px solid var(--line);border-radius:10px;
+       padding:9px 11px;text-decoration:none;color:var(--ink)}
+  .ref small{color:var(--muted);font-size:.72rem}
+  .ref b{font-size:.88rem;margin-top:1px}
+  kbd{background:#fff;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:1px 6px;font-size:.78rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="brand">
+      <h1>IBC-GPT · RA Help Desk</h1>
+      <span class="tag">Summer 2026</span>
+    </div>
+    <div class="sub">Columbia Pre-College · Internship in Building Community — type your situation, get the steps + where to find it.</div>
+  </div>
+</header>
+
+<div class="searchbar">
+  <div class="searchbox">
+    <span class="si">&#128269;</span>
+    <input id="q" type="search" autocomplete="off" placeholder="Describe your situation… e.g. “student is sick”, “late to curfew”, “homesick”">
+  </div>
+  <div class="chips" id="chips"></div>
+  <div class="hint">Tip: tap a red number on a phone to call it. Schedules &amp; rosters link to the live Google docs so they stay current.</div>
+</div>
+
+<main class="wrap">
+
+  <div class="emergency">
+    <h2>&#128680; Emergency — call first, then report</h2>
+    <div class="calls">
+      <a class="call" href="tel:2128545555"><small>On-campus emergency · Public Safety (24/7)</small><span class="num">212-854-5555</span></a>
+      <a class="call alt" href="tel:911"><small>Off-campus emergency</small><span class="num">911 → then SRA/RD</span></a>
+      <a class="call alt" href="tel:2128140027"><small>Carman On-Duty SRA phone — SAVE THIS</small><span class="num">212-814-0027</span></a>
+      <a class="call ghost" href="tel:3324655827"><small>RD on Duty</small><span class="num">332-465-5827</span></a>
+    </div>
+    <div class="etip">On campus: call Public Safety, then notify the RD on duty. Off campus: call 911, then your Director/RD on duty. File a Maxient report after any incident. SRA on Duty (JJ + Wallach): <a href="tel:9173644454">917-364-4454</a>.</div>
+  </div>
+
+  <p class="count" id="count"></p>
+  <div id="results"></div>
+
+  <div class="empty" id="empty" style="display:none">
+    <p>&#128269; No match for <b id="qt"></b>.</p>
+    <p>Try simpler words (“sick”, “curfew”, “gas”, “lockout”, “key”, “receipt”) or browse the categories above.</p>
+  </div>
+
+  <div class="section-title">Quick reference</div>
+  <div class="ref-grid">
+    <a class="ref" href="https://docs.google.com/spreadsheets/d/1krNw90MEuDc8hcWKo29Cg3dCg-3xtjaPNgEKhJ4XNtQ/edit" target="_blank"><small>Live doc</small><b>Master Contact Sheet &#8599;</b></a>
+    <a class="ref" href="https://docs.google.com/spreadsheets/d/10rJl4f7dhTc5tyqL2LxyuWBMZxqbYN_MJi8Ho_3Gk1U/edit" target="_blank"><small>Live doc</small><b>On-Call Sheet &#8599;</b></a>
+    <a class="ref" href="https://docs.google.com/spreadsheets/d/1_uycM9W1hg-4yT8tgkxaHHPtzWiMs_yiL2K4UwuksSA/edit" target="_blank"><small>Live doc</small><b>RA Team Rosters &#8599;</b></a>
+    <a class="ref" href="https://docs.google.com/document/d/19fq9yWgzrpYA5QVgYNfs5YgBhrdauUBGunhgK4X4mg8/edit" target="_blank"><small>Live doc</small><b>RA Handbook 2026 &#8599;</b></a>
+    <a class="ref" href="https://columbia.vndly.com/candidate/timesheets" target="_blank"><small>By Sun midnight</small><b>Timesheet (VNDLY) &#8599;</b></a>
+    <a class="ref" href="https://cm.maxient.com/reportingform.php?ColumbiaUniv&layout_id=11" target="_blank"><small>Before 9am next day</small><b>Incident Report (Maxient) &#8599;</b></a>
+  </div>
+
+</main>
+
+<footer class="wrap">
+  Built from the IBC RA Handbook (Summer 2026), SRA Master Doc, and the International Student Scenarios.
+  Numbers and policies were transcribed from those source docs — always defer to your SRA/RD and the live documents if something has changed.
+  <br><br><b>IBC-GPT</b> · last refreshed June 26, 2026.
+</footer>
+
+<script>
+/* ---------- KNOWLEDGE BASE ---------- */
+const DATA = [
+ /* ============ SAFETY / EMERGENCY ============ */
+ {cat:"safety",title:"Medical emergency (student seriously hurt or ill)",
+  tags:"emergency hospital ambulance unconscious seizure breathing injury bleeding overdose intoxicated faint collapse 911 urgent",
+  teaser:"On campus → Public Safety 212-854-5555. Off campus → 911. Then RD + Maxient.",
+  steps:["Stay with the student. On campus, call Columbia Public Safety <b>212-854-5555</b> (24/7) — they arrange the emergency response.",
+         "If you are off campus, call <b>911</b> first, then call your SRA or RD on duty.",
+         "Notify the RD on duty right away.",
+         "After Health Services hours, students go to Mt. Sinai St. Luke's (Amsterdam Ave). <b>Call the RD on call BEFORE escorting</b> — a Coordinator may need to go too. ER entrance is on 113th St just east of Amsterdam; check the student into <b>pediatrics</b> to speed response.",
+         "File a Maxient incident report afterward. Bring phone chargers + something warm to the hospital."],
+  contacts:[["Public Safety (emergency)","2128545555"],["RD on Duty","3324655827"],["Carman On-Duty SRA","2128140027"]],
+  links:[["Incident Report (Maxient)","https://cm.maxient.com/reportingform.php?ColumbiaUniv&layout_id=11"]]},
+
+ {cat:"health",title:"Student feels sick (non-emergency, daytime)",
+  tags:"ill unwell fever cold nausea headache health services appointment doctor sick clinic john jay",
+  teaser:"Walk them to Health Services (John Jay 3rd floor). Floaters: this is priority #1.",
+  steps:["Encourage students to report illness <b>during the day</b> — waiting until evening means an ER visit that takes all night.",
+         "A student must be <b>accompanied by an RA/program assistant</b> to Health Services (John Jay Hall, 3rd floor).",
+         "Tell the receptionist you are with <b>“the Columbia University Pre-College Program.”</b>",
+         "Bring the student's health information with you.",
+         "Urgent care is seen without an appointment. For non-urgent needs, call to book: 212-854-2284.",
+         "If a student says they're too ill for class, they <b>must</b> go to Health Services. Floater priority list ranks Health Center visits #1."],
+  contacts:[["Health Services","2128542284"],["Student Health Center","2128547426"]],
+  links:[]},
+
+ {cat:"health",title:"Student is emotionally distressed / says they're depressed",
+  tags:"crying upset emotional distress depressed depression anxiety mental health homesick sad overwhelmed wellness counselor",
+  teaser:"Console them, then contact the Wellness Coordinator right away + file Maxient. You can't fix it alone.",
+  steps:["Number one rule: <b>you cannot help the student on your own</b> — the most caring thing is to reach out to administrators.",
+         "If the student appears to be in <b>immediate danger</b>, call Public Safety <b>212-854-5555</b> or 911.",
+         "Otherwise: console the student, then contact the <b>Wellness Coordinator (Caroline Polak)</b> right away and submit a Maxient report.",
+         "Watch the line between supportive and over-your-head: conversation past 15 min, inconsolable crying, no resolution, or repeated nightly → escalate.",
+         "DO express concern and share you'll refer them for help. AVOID promising confidentiality, becoming their only support, or saying “it's not that bad.”"],
+  contacts:[["Public Safety (emergency)","2128545555"]],
+  links:[["Email Wellness Coordinator","mailto:cp3638@columbia.edu"],["Incident Report (Maxient)","https://cm.maxient.com/reportingform.php?ColumbiaUniv&layout_id=11"]]},
+
+ {cat:"safety",title:"Student shows suicide warning signs",
+  tags:"suicide suicidal self harm self-harm hurt themselves kill crisis red flag hopeless wellness emergency danger",
+  teaser:"Take it seriously. Immediate danger → Public Safety/911. Then RD, Wellness Counselor, or Dean Phong Luu + Maxient.",
+  steps:["Take <b>any</b> mention of suicide seriously. Talk about it openly and directly — don't minimize their pain.",
+         "If the student appears to be in immediate danger, call Public Safety <b>212-854-5555</b> or <b>911</b> now.",
+         "Do not offer assurances of confidentiality you can't honor, and don't become their main source of support.",
+         "Contact the <b>RD, Wellness Counselor, or Assistant Dean Phong Luu</b> for significant concerns — together you access professional help.",
+         "Submit a Maxient report. Higher-urgency contexts: past attempts, access to lethal means, family history, isolation, recent major stressors."],
+  contacts:[["Public Safety (emergency)","2128545555"],["RD on Duty","3324655827"]],
+  links:[["Incident Report (Maxient)","https://cm.maxient.com/reportingform.php?ColumbiaUniv&layout_id=11"]],
+  note:"This is a sensitive topic. If you're personally affected, Columbia's CPS and the 988 Suicide & Crisis Lifeline are available."},
+
+ {cat:"safety",title:"Suspected abuse or maltreatment of a minor",
+  tags:"abuse maltreatment minor child protection pom mandated reporter danger hotline neglect",
+  teaser:"You're a mandated reporter. Immediate danger → 911. Then NY State Hotline + POM form + Public Safety.",
+  steps:["All staff are <b>mandated reporters</b> — you must report reasonable suspicion immediately.",
+         "If a child is in <b>immediate danger</b>, call <b>911</b>.",
+         "Call the <b>NY State Child Abuse &amp; Maltreatment Hotline: 800-342-3720</b>.",
+         "Complete the Protection of Minors report form (bit.ly/pomreport).",
+         "Call the Department of Public Safety: <b>212-854-5555</b> (Morningside).",
+         "If you don't see a sufficient response, call Public Safety again to share your concerns."],
+  contacts:[["NY State Hotline","8003423720"],["911","911"],["Public Safety","2128545555"]],
+  links:[["Protection of Minors form","https://bit.ly/pomreport"]]},
+
+ {cat:"safety",title:"Disruptive, aggressive, or threatening student",
+  tags:"aggressive angry violent threat yelling fight altercation disruptive hostile outburst confrontation",
+  teaser:"Stay calm, intervene early. If there's a safety risk, call Public Safety/NYPD immediately.",
+  steps:["Remain calm and professional; read verbal and nonverbal cues.",
+         "Intervene as soon as you see/hear it and be consistent. Briefly tell the student the behavior is unacceptable and must be resolved.",
+         "If in your judgment they create a <b>safety risk, contact Public Safety or NYPD immediately</b> — use a phone out of sight/hearing, or have someone else call.",
+         "Consult the SPS Care Team and admin staff for support. File a Maxient report.",
+         "AVOID power struggles, getting defensive, or responding with anger."],
+  contacts:[["Public Safety (emergency)","2128545555"],["911","911"]],
+  links:[["Incident Report (Maxient)","https://cm.maxient.com/reportingform.php?ColumbiaUniv&layout_id=11"]]},
+
+ {cat:"safety",title:"Gender-based misconduct or harassment report",
+  tags:"title ix gender sexual harassment assault misconduct stalking discrimination bias eoaa report",
+  teaser:"You're obligated to report. File the GBM form; serious cases go to Public Safety + SCCS.",
+  steps:["All staff are obligated to report any misconduct, harassment, or discrimination they become aware of.",
+         "Encourage the student to report; immediately call the Program Office or report to the Director of Student Affairs.",
+         "File the Gender-Based Misconduct report form (bit.ly/gbmreport).",
+         "The report goes to Public Safety and Student Conduct &amp; Community Standards; the GBM Office contacts each party about resolution options.",
+         "<b>Do not</b> attempt to mediate Title IX / bias / harassment incidents yourself."],
+  contacts:[["Public Safety","2128545555"]],
+  links:[["Gender-Based Misconduct form","https://bit.ly/gbmreport"]]},
+
+ {cat:"safety",title:"When to call Public Safety / NYPD",
+  tags:"public safety nypd crisis call when threshold danger help unsure",
+  teaser:"Call 212-854-5555 if a situation is nearing crisis. When unsure, err on the side of calling.",
+  steps:["Call Public Safety <b>212-854-5555</b> when behavior poses imminent danger of: harming self or others; impeding others' lawful activities; threatening health/safety/wellbeing; a health emergency; or online posts suggesting suicidal ideation or intent to harm.",
+         "Situations that usually warrant a call: violent/suicidal/homicidal behavior, seizures, labored breathing, physical injury, unconsciousness, hallucinations or intense pain, inability to speak/walk, or dangerous intoxication.",
+         "<b>If you're unsure whether a crisis exists, err on the side of caution and call.</b>"],
+  contacts:[["Public Safety (emergency)","2128545555"],["Public Safety (non-emergency)","2128542797"]],
+  links:[]},
+
+ {cat:"safety",title:"Active shooter on campus",
+  tags:"active shooter weapon gun lockdown shelter run hide fight emergency",
+  teaser:"Secure the area: lock/barricade doors, stay quiet, then contact authorities when safe.",
+  steps:["If outside, take immediate cover, preferably inside a building.",
+         "If inside: secure your area — lock and barricade doors, turn off lights, silence phones, stay out of sight and quiet.",
+         "Contact authorities (911 / Public Safety 212-854-5555) when you can do so safely; report location, number of shooters, descriptions, and weapons.",
+         "Do not open doors until an official all-clear; police entering will be focused on stopping the threat first.",
+         "See the full Active Shooter protocol in the RA Handbook."],
+  contacts:[["911","911"],["Public Safety","2128545555"]],
+  links:[["Full protocol (Handbook)","https://docs.google.com/document/d/19fq9yWgzrpYA5QVgYNfs5YgBhrdauUBGunhgK4X4mg8/edit"]]},
+
+ /* ============ DAILY OPS ============ */
+ {cat:"daily",title:"Student is late to curfew",
+  tags:"curfew late missing check-in tracker incident 30 minutes night room building",
+  teaser:"Under 30 min late → curfew tracker form. Over 30 min → Incident Report + RD follow-up.",
+  steps:["Curfew checks must be <b>face-to-face</b> — never by text, group chat, or another RA without supervisor approval.",
+         "If a student is <b>under 30 minutes</b> late → log it in the curfew tracker form.",
+         "If <b>over 30 minutes</b> late → complete an Incident Report (Maxient) and follow up with your building's RD.",
+         "Stay in the hall during and between curfew checks."],
+  contacts:[["RD on Duty","3324655827"],["Carman On-Duty SRA","2128140027"]],
+  links:[["Curfew tracker form","https://docs.google.com/forms/d/e/1FAIpQLSf_b2ZMPi5QUsPNQexLpm0fSI1NuPQq6jFAWIq-iIxiF-NsGg/viewform"],["Incident Report (Maxient)","https://cm.maxient.com/reportingform.php?ColumbiaUniv&layout_id=11"]]},
+
+ {cat:"daily",title:"Curfew times & dining hours",
+  tags:"curfew time hours schedule in-building in-room dining ferris booth breakfast lunch dinner food meal",
+  teaser:"In-building: 9pm Sun–Thu / 10pm Fri–Sat. In-room: 11pm / 12am. Curfew ends 6am.",
+  steps:[],
+  custom:`<h4>Curfew</h4><ul>
+    <li><b>In-building</b> (RAs must be in-building for checks): Sun–Thu <b>9:00 PM</b> · Fri–Sat <b>10:00 PM</b></li>
+    <li><b>In-room</b> (RAs off after checks unless on duty): Sun–Thu <b>11:00 PM</b> · Fri–Sat <b>12:00 AM</b></li>
+    <li>Curfew ends <b>6:00 AM</b> daily.</li></ul>
+    <h4>Ferris Booth dining (Lerner Center)</h4><ul>
+    <li><b>Mon–Fri:</b> Breakfast 7–9:30am · Lunch 11am–3pm · Dinner 4–7pm</li>
+    <li><b>Sat–Sun:</b> Breakfast 9–10:30am · Lunch 12–2pm · Dinner 5–7pm</li></ul>`,
+  contacts:[],links:[]},
+
+ {cat:"daily",title:"You're on overnight duty / on call",
+  tags:"duty on call overnight rounds report ringer night shift 8:50 maxient building rounds",
+  teaser:"Check in with RD, do rounds at 15/45/75 min after curfew, ringer ON, duty report at 8:50am.",
+  steps:["Duty runs from in-room curfew until the morning lounge shift begins (about twice a week).",
+         "Check in with the <b>RD on duty</b> for any special instructions.",
+         "Complete floor/building rounds at <b>15, 45, and 75 minutes</b> after curfew; tell your SRA each time you finish a round.",
+         "Keep your ringer ON and off Do-Not-Disturb all night so you can answer calls.",
+         "Send an updated report if anything happens overnight. Submit your <b>duty report at 8:50 AM</b>; all Maxient reports in before 9:00 AM.",
+         "<b>Never leave the building while on duty</b> — not even for a food delivery. Pick up food before in-building curfew. Leaving = formal HR write-up."],
+  contacts:[["RD on Duty","3324655827"],["Carman On-Duty SRA","2128140027"]],
+  links:[["On-Call Sheet","https://docs.google.com/spreadsheets/d/10rJl4f7dhTc5tyqL2LxyuWBMZxqbYN_MJi8Ho_3Gk1U/edit"]]},
+
+ {cat:"daily",title:"Roommate / student conflict (mediation)",
+  tags:"roommate conflict mediation argument dispute disagreement fight tension agreement mediate",
+  teaser:"Address within 24h. Prep, update supervisor, mediate, write an IR, follow up. Don't mediate physical/bias/Title IX.",
+  steps:["Prioritize mediations and address conflict within <b>24 hours</b>.",
+         "<b>Prep:</b> gather info from those involved, narrow to immediate parties, update your supervisor, reserve a space (e.g. floor lounge), set a time limit (≤1 hr).",
+         "<b>During:</b> open with intro + ground rules, give equal time, let residents brainstorm solutions, review/edit the Roommate Agreement, plan follow-up.",
+         "<b>After:</b> update your supervisor on the outcome, write an Incident Report, and check in on the students within 24–48 hours.",
+         "<b>Do NOT mediate</b> physical altercations, bias/harassment, or Title IX incidents — escalate those."],
+  contacts:[["Carman On-Duty SRA","2128140027"]],
+  links:[["Incident Report (Maxient)","https://cm.maxient.com/reportingform.php?ColumbiaUniv&layout_id=11"]]},
+
+ {cat:"daily",title:"International student homesick / struggling to adjust",
+  tags:"international homesick missing home culture shock language slang withdrawn left out belonging adjust food family",
+  teaser:"Validate, connect them to community + Wellness, check in regularly. Escalate if distress deepens.",
+  steps:["Common signs: withdrawing, missing home/food/family, struggling with fast English/slang, feeling left out, or considering going home.",
+         "Listen and validate without minimizing. Normalize the adjustment curve and help them find belonging (community groups, clubs, buddies on the floor).",
+         "Loop in your SRA and the <b>Wellness Coordinator</b> for ongoing support; check in regularly rather than one-and-done.",
+         "If it deepens into emotional distress (see that card), console and submit a Maxient + contact Wellness right away.",
+         "See the International Student Scenarios doc for worked examples (Wenhan, Mei, Hasna, Mehmet, Lucía)."],
+  contacts:[],
+  links:[["International Student Scenarios","https://docs.google.com/document/d/1s-tU0ZuiuGHfNcT3OjYyBruk2YIASNWzhdtLOOu4Fc0/edit"]]},
+
+ /* ============ LOGISTICS ============ */
+ {cat:"logistics",title:"Lockout — let a student into their room",
+  tags:"lockout locked out room key master key access card door can't get in orah",
+  teaser:"Use the Master Key (held by SRA on duty). Verify roster + ID first. After hours → Housing Coordinator.",
+  steps:["The hall <b>Master Key is held by the SRA on duty</b>.",
+         "Before letting anyone in, <b>verify</b> on the building roster or Orah that they're assigned to that room, and confirm their identity.",
+         "Confirm the student has their ID in the room, or arrange an escort to Kent Hall (business hours) if the ID is lost.",
+         "Return the Master Key to the storing staff member <b>immediately</b> after.",
+         "After hours / weekends: contact the <b>Housing Coordinator on call</b> about a temporary access card."],
+  contacts:[["Carman On-Duty SRA","2128140027"]],
+  links:[["Email Housing Coordinator","mailto:kt3129@columbia.edu"],["Room Assignment / Roster","https://docs.google.com/spreadsheets/d/1_uycM9W1hg-4yT8tgkxaHHPtzWiMs_yiL2K4UwuksSA/edit"]]},
+
+ {cat:"logistics",title:"Lost ID / CUID card",
+  tags:"lost id card cuid replace access kent furnald re-encode swipe",
+  teaser:"New card at ID Office (Kent Hall), then re-encode housing access at Furnald Hall.",
+  steps:["Get a replacement at the <b>ID Office in Kent Hall</b>.",
+         "After getting the new card, go to <b>Furnald Hall</b> to have it re-encoded with your housing access.",
+         "Never let anyone (interns, staff, or students) borrow your ID card.",
+         "Your CUID grants access to campus, residence halls, Ferris Booth, Uris, Lerner, and Dodge Fitness."],
+  contacts:[],links:[]},
+
+ {cat:"logistics",title:"Dorm maintenance issue",
+  tags:"maintenance broken ac air conditioning leak flooding repair facilities work order housing dorm room",
+  teaser:"Routine → Housing Coordinator + maintenance request (pick “undergraduate housing”). Emergency → security desk + RD.",
+  steps:["For routine problems (AC, cleaning, condition): contact the <b>Housing Coordinator</b> and submit a maintenance request. On the form, select <b>“undergraduate housing”</b> (we're an on-campus freshman dorm).",
+         "<b>Emergency</b> (untraceable gas smell, electrical problem, flooding): go straight to the <b>security desk</b>, have the Public Safety guard call Facilities/emergency personnel, then notify your RD.",
+         "<b>Gas smell:</b> check the lounge stove for a turned knob — if that's it, shut it off and open windows (no emergency personnel needed). If you can't find the source, leave immediately, then contact a Public Safety guard and the RD."],
+  contacts:[["Public Safety (non-emergency)","2128542797"]],
+  links:[["Maintenance request","https://servicerequest.cuf.columbia.edu/request.aspx?r=u"],["Email Housing Coordinator","mailto:kt3129@columbia.edu"]]},
+
+ {cat:"logistics",title:"P-card purchases & receipts",
+  tags:"pcard p-card receipt money budget purchase finance reimburse spending excursion meals card",
+  teaser:"Submit receipts via the receipt form ASAP + hand to Finance Coordinator same/next day. Lost → missing receipt form.",
+  steps:["Every p-card purchase must be followed by <b>immediate receipt submission</b>. Try to get one event onto one receipt.",
+         "Photograph the receipt the moment you get it, submit via the receipt form, and hand the physical receipt to the <b>Finance Coordinator (Dhriti Gupta)</b> the same or next business day.",
+         "Lost/missing receipt → complete the <b>missing receipt form</b> and turn it in ASAP.",
+         "P-cards on excursions are for <b>actual meals only</b> — not snacks or drinks (water for heat/safety is the exception).",
+         "If a p-card switches hands, notify the Finance Coordinator immediately. Not submitting receipts or losing a p-card → disciplinary meeting."],
+  contacts:[],
+  links:[["P-card receipt form","https://docs.google.com/forms/d/e/1FAIpQLSdBqkX3vy31rG0LwLXdaLBmkYq2sByzAbXZdVGPe4nMgMDgng/viewform"],["Email Finance Coordinator","mailto:dg3593@columbia.edu"]]},
+
+ {cat:"logistics",title:"Submit your hours / timesheet",
+  tags:"timesheet hours pay vndly tlam log payroll submit sunday clock",
+  teaser:"Submit hours in VNDLY by Sunday midnight, then note them in the RA logging sheet.",
+  steps:["Submit your hours in <b>VNDLY</b> by <b>Sunday midnight</b>. If you're on call Sunday, go ahead and submit for Monday.",
+         "Columbia students also submit in TLAM.",
+         "Note what you did and your total hours in the RA logging sheet as a backup.",
+         "Reflect your unpaid 30-min break on your timesheet for any formal shift."],
+  contacts:[],
+  links:[["Timesheet (VNDLY)","https://columbia.vndly.com/candidate/timesheets"]]},
+
+ {cat:"logistics",title:"Plan an excursion or in-building program",
+  tags:"excursion trip program proposal budget activity event plan ratio chaperone nyc subway",
+  teaser:"1 RA : 5 residents. Get the program proposal + budget approved by your RD first.",
+  steps:["Maintain a <b>1 RA to 5 residents</b> ratio on every trip.",
+         "Propose the program and budget via the proposal form and get <b>RD approval</b> before spending. Uphold the approved budget.",
+         "Emphasize in-building programming for residents who can't afford/attend excursions.",
+         "Brief students on safety before leaving (charged phone, buddy system, MetroCard in advance, meet-up spot, head counts).",
+         "<b>Off-campus incident:</b> assess, call 911 if an emergency, report to MTA/police before leaving the station, stay for the report, <b>call the Director on duty immediately</b>, and file a Maxient for any off-campus incident."],
+  contacts:[["RD on Duty","3324655827"]],
+  links:[["Excursion proposal form","https://docs.google.com/forms/d/e/1FAIpQLSeR3LjgE5083CCA8CNKP1gxsGMkiUo3Xs6Gue7hbkmFjThfZQ/viewform"],["NYC Excursion suggestions","https://docs.google.com/spreadsheets/d/1fIBS5vjIEtbKJ8M4pAeZsmCZFrmIwZo4bnK_q-WVFbQ/edit"]]},
+
+ {cat:"logistics",title:"Student wants to leave campus / stay overnight",
+  tags:"off campus leave overnight pass sign out parent guardian boundaries trip home weekend away",
+  teaser:"A parent/guardian must submit the Off-Campus Request Form 72h in advance — students can't self-submit.",
+  steps:["A <b>parent or legal guardian</b> must submit the Off-Campus Request Form for each instance, with date/time of departure, destination, and return.",
+         "Submit <b>at least 72 hours in advance</b>. The form is only open Mon 9am–Thu 5pm (closed Fri–Sun). Students may NOT submit it themselves.",
+         "All requests are verified by direct phone call with the parent/guardian before the student leaves.",
+         "Limits: max 2 nights off-campus, one consecutive overnight per session, two out-of-boundary requests per session; students must return before curfew.",
+         "Out-of-boundary trips (except medical/lessons) must be supervised by an adult family member 25+. Tourism/exploring with other students is not approved."],
+  contacts:[],
+  links:[["Off-Campus Request Form","https://docs.google.com/forms/d/e/1FAIpQLSfz_THn_s1KjDJzqCuNfLxIAGtOhGkIT7hJLYtd0ylzED7S2g/viewform"]]},
+
+ {cat:"logistics",title:"Which report form do I file?",
+  tags:"report form incident maxient which form student of concern gbm pom protection minors conduct violation",
+  teaser:"Policy violation / student of concern → Maxient. GBM → bit.ly/gbmreport. Minors → bit.ly/pomreport.",
+  steps:[],
+  custom:`<p>Managing the situation in front of you comes first — the report is secondary to everyone's safety. Then file the right form:</p>
+   <ul>
+     <li><b>Policy violation OR student of concern</b> → Incident Report (Maxient) / <a href="https://bit.ly/spsconcern" target="_blank">bit.ly/spsconcern</a>. All Maxient reports before 9am next day.</li>
+     <li><b>Gender-based misconduct</b> (harassment, assault, stalking, discrimination) → <a href="https://bit.ly/gbmreport" target="_blank">bit.ly/gbmreport</a></li>
+     <li><b>Suspected abuse/maltreatment of a minor</b> → <a href="https://bit.ly/pomreport" target="_blank">bit.ly/pomreport</a> (+ 911 if danger, + NY hotline 800-342-3720, + Public Safety)</li>
+   </ul>
+   <p>Writing tip: focus on <b>observable behaviors</b>, give specifics (dates/counts), and avoid labels like “acting crazy.”</p>`,
+  contacts:[],
+  links:[["Incident Report (Maxient)","https://cm.maxient.com/reportingform.php?ColumbiaUniv&layout_id=11"]]},
+
+ /* ============ CONTACTS ============ */
+ {cat:"contacts",title:"Key phone numbers (on-duty + emergency)",
+  tags:"phone number contact call duty sra rd public safety emergency hotline health counselor",
+  teaser:"All the numbers you'll actually need in one place.",
+  steps:[],
+  custom:`<ul>
+     <li><b>Public Safety — emergency (24/7):</b> <a href="tel:2128545555">212-854-5555</a></li>
+     <li><b>Public Safety — non-emergency (Morningside):</b> <a href="tel:2128542797">212-854-2797</a></li>
+     <li><b>Off-campus emergency:</b> <a href="tel:911">911</a> → then SRA/RD</li>
+     <li><b>Carman On-Duty SRA phone (SAVE THIS):</b> <a href="tel:2128140027">212-814-0027</a></li>
+     <li><b>RD on Duty:</b> <a href="tel:3324655827">332-465-5827</a></li>
+     <li><b>SRA on Duty (JJ + Wallach):</b> <a href="tel:9173644454">917-364-4454</a></li>
+     <li><b>Health Services (John Jay 3rd fl):</b> <a href="tel:2128542284">212-854-2284</a></li>
+     <li><b>Student Health Center:</b> <a href="tel:2128547426">212-854-7426</a></li>
+     <li><b>NY State Child Abuse &amp; Maltreatment Hotline:</b> <a href="tel:8003423720">800-342-3720</a></li>
+     <li><b>IBC office email:</b> <a href="mailto:ibc@columbia.edu">ibc@columbia.edu</a></li>
+   </ul>
+   <p style="font-size:.82rem;color:var(--muted)">Counselor-on-duty numbers are for the Director on Duty only and are not listed here per policy. Full numbers/UNIs live in the Master Contact Sheet.</p>`,
+  contacts:[],
+  links:[["Master Contact Sheet","https://docs.google.com/spreadsheets/d/1krNw90MEuDc8hcWKo29Cg3dCg-3xtjaPNgEKhJ4XNtQ/edit"]]},
+
+ {cat:"contacts",title:"Who to contact for what (coordinators & admins)",
+  tags:"coordinator wellness housing finance conduct programming admin dean director email who escalation chain",
+  teaser:"Match your issue to the right coordinator — plus the escalation chain.",
+  steps:[],
+  custom:`<h4>Escalation chain</h4>
+   <p>SRA → Resident Director (RD) → Assistant Director (Jeannette Sanchez) → Director. Resolve at each level before escalating.</p>
+   <h4>Coordinators</h4>
+   <ul>
+     <li><b>Wellness</b> — Caroline Polak · <a href="mailto:cp3638@columbia.edu">cp3638@columbia.edu</a></li>
+     <li><b>Housing</b> — Karishma Trejo · <a href="mailto:kt3129@columbia.edu">kt3129@columbia.edu</a></li>
+     <li><b>Finance / Student Services</b> — Dhriti Gupta · <a href="mailto:dg3593@columbia.edu">dg3593@columbia.edu</a></li>
+     <li><b>Conduct</b> — Dylan Horsford · <a href="mailto:dh3112@columbia.edu">dh3112@columbia.edu</a></li>
+     <li><b>Programming (Commuter)</b> — Emily Lopez · <a href="mailto:el3525@columbia.edu">el3525@columbia.edu</a></li>
+     <li><b>Senior Programming</b> — Lauren Bell · <a href="mailto:lb3721@columbia.edu">lb3721@columbia.edu</a></li>
+   </ul>
+   <h4>Resident Directors</h4>
+   <p>Kay Zakarin, Rebekah Walker, Saily Fernandez, Geanpaul Ojeda (Visiting), Manley Francois (Senior RD).</p>
+   <h4>Administrators</h4>
+   <ul>
+     <li>Jeannette Sanchez — Assistant Director (general support) · <a href="mailto:js4394@columbia.edu">js4394@columbia.edu</a></li>
+     <li>Amanda Díaz — Interim Director, Student Affairs · <a href="mailto:ad3566@columbia.edu">ad3566@columbia.edu</a></li>
+     <li>Cameron Collichio — Associate Director · <a href="mailto:cc4072@columbia.edu">cc4072@columbia.edu</a></li>
+     <li>Kwesi Alleyne — Assistant Director, Student Engagement · <a href="mailto:ka2155@columbia.edu">ka2155@columbia.edu</a></li>
+     <li>Phong Luu — Assistant Dean of Student Affairs</li>
+   </ul>`,
+  contacts:[],
+  links:[["Full Master Contact Sheet","https://docs.google.com/spreadsheets/d/1krNw90MEuDc8hcWKo29Cg3dCg-3xtjaPNgEKhJ4XNtQ/edit"]]},
+];
+
+const CATS=[["all","All"],["safety","Safety & crisis"],["health","Health"],["daily","Daily ops"],["logistics","Logistics & forms"],["contacts","Contacts"]];
+
+/* ---------- RENDER ---------- */
+const results=document.getElementById('results');
+const chipWrap=document.getElementById('chips');
+const q=document.getElementById('q');
+const countEl=document.getElementById('count');
+const emptyEl=document.getElementById('empty');
+let active="all";
+
+CATS.forEach(([id,label])=>{
+  const c=document.createElement('span');
+  c.className='chip'+(id==='all'?' active':'');
+  c.textContent=label;c.dataset.cat=id;
+  c.onclick=()=>{active=id;[...chipWrap.children].forEach(x=>x.classList.toggle('active',x.dataset.cat===id));render();};
+  chipWrap.appendChild(c);
+});
+
+function telLink(n){const d=n.replace(/[^0-9]/g,'');return `<a class="pill tel" href="tel:${d}">&#128222; ${n}</a>`;}
+function extLink(l){const isMail=l[1].startsWith('mailto');return `<a class="pill link" href="${l[1]}" ${isMail?'':'target="_blank"'}>${isMail?'&#9993;':'&#128279;'} ${l[0]}</a>`;}
+
+function cardHTML(d,i){
+  let body='';
+  if(d.steps&&d.steps.length){body+='<h4>What to do</h4><ol>'+d.steps.map(s=>`<li>${s}</li>`).join('')+'</ol>';}
+  if(d.custom){body+=d.custom;}
+  if(d.note){body+=`<p style="font-size:.82rem;color:var(--muted);border-left:3px solid var(--line);padding-left:10px">${d.note}</p>`;}
+  if((d.contacts&&d.contacts.length)||(d.links&&d.links.length)){
+    body+='<h4>Call / open</h4><div>';
+    if(d.contacts)body+=d.contacts.map(telLink).join('');
+    if(d.links)body+=d.links.map(extLink).join('');
+    body+='</div>';
+  }
+  return `<div class="card" data-i="${i}">
+     <div class="head" onclick="this.parentNode.classList.toggle('open')">
+       <span class="badge ${d.cat}">${d.cat}</span>
+       <div><h3>${d.title}</h3><div class="teaser">${d.teaser}</div></div>
+       <span class="chev">&#9656;</span>
+     </div>
+     <div class="body">${body}</div>
+   </div>`;
+}
+
+function render(){
+  const term=q.value.trim().toLowerCase();
+  const words=term.split(/\s+/).filter(Boolean);
+  let list=DATA.map((d,i)=>({d,i}));
+  if(active!=='all')list=list.filter(x=>x.d.cat===active||(active==='health'&&x.d.cat==='health'));
+  if(words.length){
+    list=list.map(x=>{
+      const hay=(x.d.title+' '+x.d.tags+' '+x.d.teaser).toLowerCase();
+      let score=0;words.forEach(w=>{if(hay.includes(w))score++;if(x.d.title.toLowerCase().includes(w))score+=2;});
+      return {...x,score};
+    }).filter(x=>x.score>0).sort((a,b)=>b.score-a.score);
+  }
+  if(!list.length){results.innerHTML='';emptyEl.style.display='block';countEl.textContent='';
+    document.getElementById('qt').textContent=term;return;}
+  emptyEl.style.display='none';
+  countEl.textContent=`${list.length} ${list.length===1?'answer':'answers'}${term?` for “${term}”`:''}`;
+  results.innerHTML=list.map(x=>cardHTML(x.d,x.i)).join('');
+  if(words.length&&list.length<=2){const f=results.querySelector('.card');if(f)f.classList.add('open');}
+}
+q.addEventListener('input',render);
+render();
+</script>
+</body>
+</html>
