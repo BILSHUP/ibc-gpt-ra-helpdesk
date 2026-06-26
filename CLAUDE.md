@@ -7,13 +7,31 @@ Community, Summer 2026). Built for an RA (Bishop Switzer) to share with the RA t
 ## What's built
 - **`index.html`** — the whole app, single self-contained file (no build step, no
   dependencies). Open it in any browser; works on phones. Deploy = serve this static file.
+  - **Chatbot UI:** an RA types their situation in a chat composer; the bot replies with a
+    conversational lead-in + the matching answer card (steps, tap-to-call buttons, links) and
+    related-topic quick chips. Pinned emergency call bar stays at the top. Browse-by-category
+    is reachable via the "Browse all" chip. (Earlier version was a search dashboard; same
+    `DATA` + scoring under a chat front-end.)
   - A `DATA` array (JS, near the bottom of the file) holds every entry as
     `{cat, title, tags, teaser, steps[], custom?, contacts[[label,telDigits]], links[[label,url]], note?}`.
+    **34 entries** as of 2026-06-26.
   - **To add/edit content, edit the `DATA` array.** `tags` drives the live search; add
     synonyms a stressed RA might type. `contacts` render as tap-to-call buttons (digits only).
+  - The matcher filters a `STOP` set of common/intent words so meaningful words drive results
+    (otherwise short substrings like "all" match "emotionALLy"). Search hay = title+tags+teaser
+    only — **`steps[]` text is NOT indexed**, so put searchable synonyms in `tags`.
   - Categories: `safety`, `health`, `daily`, `logistics`, `contacts`.
-  - Features: sticky situation-search (keyword + synonym scoring), category chips, pinned
-    emergency call bar, quick-reference links to the live Google docs.
+
+## Run & deploy
+- **Local preview:** `.claude/launch.json` defines a `static` server (`npx serve -l 8000`);
+  serve redirects `/index.html` → `/`, so load `http://localhost:8000/`.
+- **Deployed (LIVE, public):** **https://ibc-gpt-ra-helpdesk.vercel.app**
+  Project is linked (Vercel scope `bishopswitzer-4098s-projects`, `.vercel/` gitignored).
+  Redeploy after edits: `npx vercel deploy --prod --yes` from this folder.
+  - ⚠️ Privacy: public URL exposes staff on-duty numbers + columbia.edu emails (user chose
+    public, warned). Offer password-gating if they reconsider. Google-Docs/Canvas links are
+    Columbia-login-gated, but training-session **Zoom recordings are open share links** — do
+    NOT embed those on the public site; link the login-gated Canvas Training module instead.
 
 ## Source material (Google Drive — owner: bishopswitzer)
 Raw text of the main doc is saved in `_source/RA_Handbook_2026.txt`. Key Drive file IDs:
@@ -24,6 +42,12 @@ Raw text of the main doc is saved in `_source/RA_Handbook_2026.txt`. Key Drive f
 - Session A RA Team Roster: `1_uycM9W1hg-4yT8tgkxaHHPtzWiMs_yiL2K4UwuksSA`
 - Master Contact Sheet: `1krNw90MEuDc8hcWKo29Cg3dCg-3xtjaPNgEKhJ4XNtQ`
 - Also: IBC Staff 2026 slides, BCD Groups, CPR/AED Groups, Floor Meeting Agenda, NYC Excursions.
+- **Canvas course (Courseworks):** IBC Summer 2026, course id **219719**
+  (`https://courseworks2.columbia.edu/courses/219719/modules`). Pulled 2026-06-26 via the
+  Canvas API (`/api/v1/courses/219719/modules?include[]=items&per_page=100` — navigate to it in
+  a logged-in browser; JS `fetch` is sandbox-blocked). Folded the durable external links
+  (building proposal forms, Maxient POM `layout_id=19`, Public Safety protocols, programming
+  docs) into `DATA`. Slide decks + Zoom recordings live in the course Training module.
 
 All facts in `index.html` were transcribed from the Handbook, Master Doc, and Scenarios.
 The hub deliberately links schedules/rosters to the **live** Google docs rather than freezing
@@ -34,20 +58,20 @@ them, so they stay current.
 - On-duty: Carman SRA **212-814-0027**, RD on Duty **332-465-5827**, SRA on Duty (JJ+Wallach) **917-364-4454**.
 - Curfew: in-building 9pm Sun–Thu / 10pm Fri–Sat; in-room 11pm / 12am; ends 6am.
   <30 min late → curfew tracker form; >30 min → Maxient + RD.
-- Reports: Maxient incident report (policy/concern), bit.ly/gbmreport (gender-based),
-  bit.ly/pomreport (minors; + 911, + NY hotline 800-342-3720).
+- Reports: Maxient incident report `layout_id=11` (policy/concern), bit.ly/gbmreport
+  (gender-based), Maxient `layout_id=19` (Protection of Minors; + 911, + NY hotline 800-342-3720).
 - Escalation chain: SRA → RD → Assistant Director (Jeannette Sanchez) → Director.
 
 ## Remaining tasks
-1. **Deploy.** Static site. From this folder: `npx vercel` (user has Vercel connected) or drag
-   the folder to app.netlify.com/drop. Re-run to redeploy after edits.
-   - ⚠️ Privacy: the page lists staff on-duty numbers + columbia.edu emails. A fully public URL
-     exposes these. User chose public after being warned; offer password-gating if they reconsider.
-2. **Canvas content.** Not yet pulled (no Canvas MCP exists). Use the browser while the user is
-   logged into their Canvas course; collect links/policies/files and add as new `DATA` entries.
-3. **Session recordings.** Need transcripts to be searchable — get the audio/video files, transcribe,
-   then add summaries/links as `DATA` entries.
-4. **More scenarios.** Expand `DATA` with situations the RA handles often.
+1. ~~**Deploy.**~~ ✅ Done — live at https://ibc-gpt-ra-helpdesk.vercel.app (see Run & deploy).
+2. ~~**Canvas content.**~~ ✅ Pulled course 219719; durable links folded in (see Source material).
+   Not yet added: deep content from individual Canvas *Pages* (Metrocard Protocols, Gym/Flex/
+   Campus IDs/Maintenance pages) and PDF slide decks — could be summarized into `DATA` if wanted.
+3. **Session recordings.** Zoom training recordings are linked (login-gated) but not transcribed.
+   To make them *searchable*, get the audio/video, transcribe, then add summaries as `DATA` entries.
+4. **More scenarios.** Keep expanding `DATA` with situations the RA handles often.
+5. **(Optional) Real LLM chatbot.** Current chat is static keyword matching. True NL understanding
+   would need a serverless endpoint + API key (can't expose a key on the public static site).
 
 ## Conventions
 - Keep it a single static file unless there's a strong reason to add a framework.
