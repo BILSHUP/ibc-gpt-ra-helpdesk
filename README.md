@@ -11,9 +11,23 @@ numbers, and links to the right forms and live documents.
 
 - **`index.html`** — the entire app. No build step, no dependencies. Open it in
   any browser; it works on phones. Deploying just means serving this static file.
-- A conversational front-end over a keyword/synonym matcher and a `DATA` array of
-  **44 situation cards** across safety, health, daily ops, logistics, and contacts.
+- A conversational front-end over a `DATA` array of **53 situation cards** across
+  safety, health, daily ops, logistics, and contacts.
 - A pinned emergency call bar stays at the top; "Browse all" lists every topic.
+
+## How it answers
+
+Two layers, both grounded in the same 53 cards:
+
+1. **Keyword/synonym matcher** (built into `index.html`) — instant, offline, $0. Always
+   available; used for browse, topic chips, and as the fallback.
+2. **Optional LLM endpoint** (`/api/ask`, a Vercel serverless function) — answers free-text
+   questions with a single grounded Claude call. It's **off until an `ANTHROPIC_API_KEY`
+   is configured** in Vercel; until then (and on any error) the site silently uses the
+   keyword matcher, so it always works. The model is told to answer **only** from the cards
+   and to refuse otherwise. To enable: set `ANTHROPIC_API_KEY` in the Vercel project's
+   environment variables, set a spend cap on console.anthropic.com, and redeploy. Run
+   `npm run build:kb` after editing cards to refresh the knowledge base the endpoint uses.
 
 ## Editing content
 

@@ -1,0 +1,13 @@
+{
+  "name": "ibc-gpt-ra-helpdesk",
+  "version": "1.0.0",
+  "private": true,
+  "description": "IBC GPT — RA Help Desk. Static single-file app (index.html) plus an optional serverless LLM endpoint (/api/ask).",
+  "type": "module",
+  "scripts": {
+    "build:kb": "node scripts/build-kb.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.106.0"
+  }
+}

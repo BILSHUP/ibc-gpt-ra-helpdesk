@@ -889,22 +889,73 @@ function relatedChips(topIdx,results){
   return out;
 }
 
-function respondToQuery(term){
+/* keyword (offline) answer — also the fallback when the LLM endpoint is unavailable */
+function keywordRespond(term){
   const results=search(term);
+  if(!results.length){
+    addBot(`I couldn't find a match for <b>“${esc(term)}”</b>. Try simpler words — like “sick”, “curfew”, “lockout”, “key”, “receipt”, or “distressed” — or browse the categories.`,
+      [["Browse all topics","__browse__"]]);
+    return;
+  }
+  const top=results[0];
+  let html=`<p class="lead">${leadIn(top.d)}</p>`+answerCard(top.d);
+  addBot(html,[...relatedChips(top.i,results),["Browse all","__browse__"]]);
+}
+
+/* related-topic chips from the local matcher (shown alongside LLM answers too) */
+function relatedChipsFor(term,exclude){
+  const r=search(term).filter(x=>x.d.title!==exclude).slice(0,3).map(x=>[x.d.title,x.d.title]);
+  return [...r,["Browse all","__browse__"]];
+}
+
+/* call the serverless LLM endpoint; throws if it's unavailable so we can fall back */
+async function askLLM(term){
+  const r=await fetch('/api/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({q:term})});
+  if(!r.ok)throw new Error('llm '+r.status);
+  return r.json();
+}
+
+/* render an LLM JSON answer as an answer card (all model-supplied text is escaped) */
+function llmCard(j){
+  const cat=['safety','health','daily','logistics','contacts'].includes(j.cat)?j.cat:'logistics';
+  const steps=Array.isArray(j.steps)?j.steps.filter(Boolean):[];
+  const contacts=Array.isArray(j.contacts)?j.contacts:[];
+  const links=Array.isArray(j.links)?j.links:[];
+  const sources=Array.isArray(j.sources)?j.sources.filter(Boolean):[];
+  let body='';
+  if(steps.length)body+='<h4>What to do</h4><ol>'+steps.map(s=>`<li>${esc(String(s))}</li>`).join('')+'</ol>';
+  if(j.note)body+=`<p style="font-size:.82rem;color:var(--muted);border-left:3px solid var(--line);padding-left:10px">${esc(String(j.note))}</p>`;
+  if(contacts.length||links.length){
+    body+='<h4>Call / open</h4><div>';
+    body+=contacts.filter(c=>Array.isArray(c)&&c[1]).map(c=>`<a class="pill tel" href="tel:${String(c[1]).replace(/[^0-9]/g,'')}">&#128222; ${esc(String(c[0]))}</a>`).join('');
+    body+=links.filter(l=>Array.isArray(l)&&/^(https?:|mailto:)/.test(l[1])).map(l=>{const m=String(l[1]).startsWith('mailto');return `<a class="pill link" href="${esc(String(l[1]))}" ${m?'':'target="_blank" rel="noopener"'}>${m?'&#9993;':'&#128279;'} ${esc(String(l[0]))}</a>`;}).join('');
+    body+='</div>';
+  }
+  const src=sources.length?`<div style="font-size:.72rem;color:var(--muted);margin-top:10px">Sources: ${sources.map(s=>esc(String(s))).join(' · ')}</div>`:'';
+  const ans=j.title
+    ?`<div class="ans"><div class="head"><span class="badge ${cat}">${cat}</span><div><h3>${esc(String(j.title))}</h3></div></div><div class="body">${body}${src}</div></div>`
+    :`<div class="ans"><div class="body">${body}${src}</div></div>`;
+  const lead=j.lead?`<p class="lead">${esc(String(j.lead))}</p>`:'';
+  const tag=`<div style="font-size:.68rem;color:var(--muted);margin-bottom:6px">&#10024; AI answer · grounded in the IBC knowledge base</div>`;
+  return tag+lead+ans;
+}
+
+/* LLM-first, with the local keyword matcher as instant fallback (offline / no API key / error) */
+async function respondToQuery(term){
   showTyping();
-  setTimeout(()=>{
+  try{
+    const j=await askLLM(term);
     clearTyping();
-    if(!results.length){
-      addBot(`I couldn't find a match for <b>“${esc(term)}”</b>. Try simpler words — like “sick”, “curfew”, “lockout”, “key”, “receipt”, or “distressed” — or browse the categories.`,
-        [["Browse all topics","__browse__"]]);
+    if(j&&j.found===false){
+      const lead=j.lead||"This isn't in the IBC knowledge base yet — check with your supervisor (SRA/RD) or the full staff handbook.";
+      addBot(`<p class="lead">${esc(lead)}</p>`,relatedChipsFor(term));
       return;
     }
-    const top=results[0];
-    let html=`<p class="lead">${leadIn(top.d)}</p>`+answerCard(top.d);
-    const sugs=relatedChips(top.i,results);
-    if(sugs.length)addBot(html,[...sugs,["Browse all","__browse__"]]);
-    else addBot(html,[["Browse all","__browse__"]]);
-  },260);
+    addBot(llmCard(j),relatedChipsFor(term,j&&j.title));
+  }catch(e){
+    clearTyping();
+    keywordRespond(term);   // endpoint unavailable → local matcher
+  }
 }
 
 function showCardByTitle(title){
