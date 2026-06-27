@@ -126,9 +126,9 @@
     <span class="elabel">&#128680; Emergency</span>
     <a class="ecall" href="tel:2128545555"><small>On-campus · Public Safety</small><span class="num">212-854-5555</span></a>
     <a class="ecall alt" href="tel:911"><small>Off-campus</small><span class="num">911</span></a>
-    <button class="emore" id="emoreBtn">More&nbsp;&#9662;</button>
+    <button class="emore" id="emoreBtn" aria-expanded="false" aria-controls="emorePanel">More&nbsp;&#9662;</button>
   </div>
-  <div class="emore-panel" id="emorePanel" hidden>
+  <div class="emore-panel" id="emorePanel" role="region" aria-label="More emergency numbers" hidden>
     <div class="row"><b>Carman On-Duty SRA (SAVE THIS):</b> <a href="tel:2128140027">212-814-0027</a></div>
     <div class="row"><b>RD on Duty:</b> <a href="tel:3324655827">332-465-5827</a></div>
     <div class="row"><b>SRA on Duty (JJ + Wallach):</b> <a href="tel:9173644454">917-364-4454</a></div>
@@ -816,6 +816,7 @@ const quickrow=document.getElementById('quickrow');
 document.getElementById('emoreBtn').addEventListener('click',e=>{
   const p=document.getElementById('emorePanel');
   p.hidden=!p.hidden;
+  e.currentTarget.setAttribute('aria-expanded',String(!p.hidden));
   e.currentTarget.innerHTML=(p.hidden?'More&nbsp;&#9662;':'Less&nbsp;&#9652;');
 });
 
