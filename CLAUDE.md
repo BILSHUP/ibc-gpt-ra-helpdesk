@@ -14,7 +14,9 @@ Community, Summer 2026). Built for an RA (Bishop Switzer) to share with the RA t
     `DATA` + scoring under a chat front-end.)
   - A `DATA` array (JS, near the bottom of the file) holds every entry as
     `{cat, title, tags, teaser, steps[], custom?, contacts[[label,telDigits]], links[[label,url]], note?}`.
-    **53 entries** as of 2026-06-27.
+    **58 entries** as of 2026-06-27 (53 → 58 via the autonomous improvement pass on the
+    `auto-improve` branch / PR #1: +5 cards — allergic reaction, heat exhaustion, move-out,
+    off-campus harassment, RA time-off — plus many routing/tag, a11y, and content-accuracy fixes).
   - **To add/edit content, edit the `DATA` array.** `tags` drives the live search; add
     synonyms a stressed RA might type. `contacts` render as tap-to-call buttons (digits only).
   - The matcher filters a `STOP` set of common/intent words and scores **whole-word**
@@ -24,7 +26,7 @@ Community, Summer 2026). Built for an RA (Bishop Switzer) to share with the RA t
   - Categories: `safety`, `health`, `daily`, `logistics`, `contacts`.
 - **LLM endpoint (`/api/ask`) — LIVE.** A Vercel serverless function that uses Claude
   (`claude-haiku-4-5`) as a **router**, not a generator. Active as of 2026-06-27 (key is set).
-  - **Why a router (cost):** the endpoint does NOT stuff all 53 cards into the prompt (that was
+  - **Why a router (cost):** the endpoint does NOT stuff all cards into the prompt (that was
     ~15k tokens/question ≈ $0.017 → would burn a $5 key in <1 week). Instead `api/ask.js`:
     (1) keyword-**prefilters** the KB to the top 7 candidate cards (`prefilter()` mirrors the
     client matcher, scoring title+tags+teaser), (2) sends only those candidates' title/teaser/
