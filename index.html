@@ -48,6 +48,8 @@
   .emore-panel[hidden]{display:none}
   .emore-panel a{color:var(--red-dark);font-weight:700;text-decoration:none}
   .emore-panel .row{margin:3px 0}
+  /* narrow phones: wrap the emergency strip so 911 + More never scroll off-screen */
+  @media(max-width:430px){.estrip{flex-wrap:wrap}}
 
   /* chat transcript */
   .chat{flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 14px 8px}
