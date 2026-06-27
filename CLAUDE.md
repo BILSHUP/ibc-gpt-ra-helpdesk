@@ -14,12 +14,13 @@ Community, Summer 2026). Built for an RA (Bishop Switzer) to share with the RA t
     `DATA` + scoring under a chat front-end.)
   - A `DATA` array (JS, near the bottom of the file) holds every entry as
     `{cat, title, tags, teaser, steps[], custom?, contacts[[label,telDigits]], links[[label,url]], note?}`.
-    **34 entries** as of 2026-06-26.
+    **44 entries** as of 2026-06-27.
   - **To add/edit content, edit the `DATA` array.** `tags` drives the live search; add
     synonyms a stressed RA might type. `contacts` render as tap-to-call buttons (digits only).
-  - The matcher filters a `STOP` set of common/intent words so meaningful words drive results
-    (otherwise short substrings like "all" match "emotionALLy"). Search hay = title+tags+teaser
-    only — **`steps[]` text is NOT indexed**, so put searchable synonyms in `tags`.
+  - The matcher filters a `STOP` set of common/intent words and scores **whole-word**
+    matches above loose substrings (so "safe" doesn't win on "Safety", or "all" on
+    "emotionALLy"). Search hay = title+tags+teaser only — **`steps[]` text is NOT
+    indexed**, so put searchable synonyms in `tags`.
   - Categories: `safety`, `health`, `daily`, `logistics`, `contacts`.
 
 ## Run & deploy
@@ -64,11 +65,16 @@ them, so they stay current.
 
 ## Remaining tasks
 1. ~~**Deploy.**~~ ✅ Done — live at https://ibc-gpt-ra-helpdesk.vercel.app (see Run & deploy).
-2. ~~**Canvas content.**~~ ✅ Pulled course 219719; durable links folded in (see Source material).
-   Not yet added: deep content from individual Canvas *Pages* (Metrocard Protocols, Gym/Flex/
-   Campus IDs/Maintenance pages) and PDF slide decks — could be summarized into `DATA` if wanted.
-3. **Session recordings.** Zoom training recordings are linked (login-gated) but not transcribed.
-   To make them *searchable*, get the audio/video, transcribe, then add summaries as `DATA` entries.
+2. ~~**Canvas content.**~~ ✅ Pulled course 219719; durable links folded in. Canvas *Pages*
+   (Metrocard, Gym, Flex, Maintenance, Campus IDs, Room Reservations, Catering, P-Card check-out,
+   Nextsource) → cards. Training **slide decks** transcribed via download→PDF read: Emergency
+   Response Protocols + Working with International Students done (missing-student protocol,
+   incident-severity matrix, NYPD reporting, parental-notification nuance, POM Exec Dir Rachel
+   Ferrari, 5 int'l-student challenge areas). Remaining decks (Mediation, Policy Enforcement,
+   Navigating Boundaries, Res Life, etc.) not yet mined.
+3. **Session recordings.** Zoom training recordings have **no auto-transcript** (transcription
+   wasn't enabled) and can't be transcribed here (no audio→text). Use the **slide decks** instead
+   (download via Canvas file API `url`, read the PDF) — that's how the deck content above was added.
 4. **More scenarios.** Keep expanding `DATA` with situations the RA handles often.
 5. **(Optional) Real LLM chatbot.** Current chat is static keyword matching. True NL understanding
    would need a serverless endpoint + API key (can't expose a key on the public static site).
