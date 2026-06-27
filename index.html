@@ -43,7 +43,7 @@
   .ecall small{font-weight:600;opacity:.92;font-size:.62rem;text-transform:uppercase;letter-spacing:.3px}
   .ecall .num{font-size:.95rem;margin-top:1px}
   .emore{flex:0 0 auto;background:#fff;border:1px solid var(--line);color:var(--muted);font-weight:700;
-         font-size:.74rem;border-radius:9px;padding:7px 11px;cursor:pointer;white-space:nowrap}
+         font-size:.74rem;border-radius:9px;padding:7px 11px;cursor:pointer;white-space:nowrap;min-height:44px}
   .emore-panel{flex:0 0 auto;background:#fff7f6;border-bottom:1px solid var(--line);padding:10px 14px;font-size:.82rem;color:var(--muted)}
   .emore-panel[hidden]{display:none}
   .emore-panel a{color:var(--red-dark);font-weight:700;text-decoration:none}
@@ -79,14 +79,14 @@
   .body li{margin:4px 0;font-size:.88rem}
   .body p{font-size:.88rem;margin:6px 0}
   .pill{display:inline-flex;align-items:center;gap:5px;font-size:.8rem;background:var(--light);border:1px solid var(--line);
-        border-radius:8px;padding:6px 10px;margin:5px 6px 0 0;text-decoration:none;color:var(--ink)}
+        border-radius:8px;padding:9px 10px;margin:5px 6px 0 0;text-decoration:none;color:var(--ink);min-height:44px;box-sizing:border-box}
   .pill.tel{background:#fdecea;border-color:#f5c6c0;color:var(--red-dark);font-weight:700}
   .pill.link{background:#eaf2fc;border-color:#cfe0f7;color:var(--blue-dark);font-weight:600}
 
   /* suggestion chips inside bot messages */
   .sugs{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
-  .sug{font-size:.8rem;padding:7px 12px;border-radius:18px;border:1px solid var(--blue);
-       background:#fff;color:var(--blue-dark);cursor:pointer;font-weight:600;line-height:1.2}
+  .sug{font-size:.8rem;padding:9px 14px;border-radius:18px;border:1px solid var(--blue);
+       background:#fff;color:var(--blue-dark);cursor:pointer;font-weight:600;line-height:1.2;min-height:44px}
   .sug:hover{background:var(--light)}
   .sug.cat{border-color:var(--line);color:var(--muted)}
 
@@ -98,8 +98,8 @@
 
   /* composer */
   .quickrow{flex:0 0 auto;display:flex;gap:7px;overflow-x:auto;padding:8px 12px 2px;-webkit-overflow-scrolling:touch;background:var(--bg)}
-  .quick{white-space:nowrap;font-size:.78rem;padding:6px 12px;border-radius:18px;border:1px solid var(--line);
-         background:var(--card);color:var(--muted);cursor:pointer;font-weight:600;flex:0 0 auto}
+  .quick{white-space:nowrap;font-size:.78rem;padding:9px 14px;border-radius:18px;border:1px solid var(--line);
+         background:var(--card);color:var(--muted);cursor:pointer;font-weight:600;flex:0 0 auto;min-height:44px}
   .quick:hover{border-color:var(--blue);color:var(--blue)}
   .composer{flex:0 0 auto;display:flex;gap:8px;padding:10px 12px calc(10px + env(safe-area-inset-bottom));
             background:var(--bg);border-top:1px solid var(--line)}
