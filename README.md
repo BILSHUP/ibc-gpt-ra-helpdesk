@@ -21,13 +21,18 @@ Two layers, both grounded in the same 53 cards:
 
 1. **Keyword/synonym matcher** (built into `index.html`) — instant, offline, $0. Always
    available; used for browse, topic chips, and as the fallback.
-2. **Optional LLM endpoint** (`/api/ask`, a Vercel serverless function) — answers free-text
-   questions with a single grounded Claude call. It's **off until an `ANTHROPIC_API_KEY`
-   is configured** in Vercel; until then (and on any error) the site silently uses the
-   keyword matcher, so it always works. The model is told to answer **only** from the cards
-   and to refuse otherwise. To enable: set `ANTHROPIC_API_KEY` in the Vercel project's
-   environment variables, set a spend cap on console.anthropic.com, and redeploy. Run
-   `npm run build:kb` after editing cards to refresh the knowledge base the endpoint uses.
+2. **LLM endpoint** (`/api/ask`, a Vercel serverless function) — understands free-text,
+   messy questions. To keep it cheap, Claude is used as a **router, not a writer**: the
+   server keyword-prefilters to a few candidate cards, and the model only picks the best
+   one and writes a one-line intro. The app then renders that card from its local copy —
+   so phone numbers and links never come from the model (cheaper, and no hallucinated
+   facts). Runs on `claude-haiku-4-5` at roughly **$0.0013 per question**. If the endpoint
+   is ever unavailable (or no API key is set), the site silently falls back to the keyword
+   matcher, so it always works.
+
+To run the LLM layer: set `ANTHROPIC_API_KEY` in the Vercel project's environment variables,
+set a spend cap on console.anthropic.com, and redeploy. Run `npm run build:kb` after editing
+cards (then redeploy) to refresh the knowledge base the endpoint uses.
 
 ## Editing content
 

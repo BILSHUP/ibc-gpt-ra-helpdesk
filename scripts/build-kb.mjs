@@ -23,6 +23,7 @@ const strip = (s) => String(s || '')
 const kb = DATA.map((d) => ({
   cat: d.cat,
   title: d.title,
+  tags: String(d.tags || ''),   // server-side prefilter only — NOT sent to the model
   teaser: strip(d.teaser),
   steps: (d.steps || []).map(strip).filter(Boolean),
   details: strip(d.custom || ''),

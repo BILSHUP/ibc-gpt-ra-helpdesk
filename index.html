@@ -251,7 +251,7 @@ const DATA = [
   links:[["Gender-Based Misconduct form","https://bit.ly/gbmreport"]]},
 
  {cat:"safety",title:"Suspected alcohol, drugs, or an intoxicated student",
-  tags:"alcohol drunk drinking beer drugs weed marijuana vape vaping smoking cigarette high intoxicated under the influence substance paraphernalia possession smell hungover",
+  tags:"alcohol drunk drinking beer drugs weed marijuana vape vaping smoking cigarette high intoxicated under the influence substance paraphernalia possession smell hungover wasted hammered trashed plastered smashed blackout blacked out tipsy buzzed stoned faded came back drunk threw up vomiting passed out can't stand",
   teaser:"Safety first, not enforcement. Dangerous intoxication = medical emergency → Public Safety. Don't force a search; document + notify RD + Maxient.",
   steps:["Students possessing or using alcohol or illegal drugs is prohibited (everyone here is a minor). Smoking/vaping — and even <b>possessing</b> smoking or vaping devices — is also banned in the residence halls.",
          "Your first job is <b>safety, not enforcement</b>. Signs of dangerous intoxication are a <b>medical emergency</b> — call Public Safety <b>212-854-5555</b> (or 911 off campus) now. Never assume an intoxicated student gave accurate info about what or how much they took.",
@@ -915,30 +915,10 @@ async function askLLM(term){
   return r.json();
 }
 
-/* render an LLM JSON answer as an answer card (all model-supplied text is escaped) */
-function llmCard(j){
-  const cat=['safety','health','daily','logistics','contacts'].includes(j.cat)?j.cat:'logistics';
-  const steps=Array.isArray(j.steps)?j.steps.filter(Boolean):[];
-  const contacts=Array.isArray(j.contacts)?j.contacts:[];
-  const links=Array.isArray(j.links)?j.links:[];
-  const sources=Array.isArray(j.sources)?j.sources.filter(Boolean):[];
-  let body='';
-  if(steps.length)body+='<h4>What to do</h4><ol>'+steps.map(s=>`<li>${esc(String(s))}</li>`).join('')+'</ol>';
-  if(j.note)body+=`<p style="font-size:.82rem;color:var(--muted);border-left:3px solid var(--line);padding-left:10px">${esc(String(j.note))}</p>`;
-  if(contacts.length||links.length){
-    body+='<h4>Call / open</h4><div>';
-    body+=contacts.filter(c=>Array.isArray(c)&&c[1]).map(c=>`<a class="pill tel" href="tel:${String(c[1]).replace(/[^0-9]/g,'')}">&#128222; ${esc(String(c[0]))}</a>`).join('');
-    body+=links.filter(l=>Array.isArray(l)&&/^(https?:|mailto:)/.test(l[1])).map(l=>{const m=String(l[1]).startsWith('mailto');return `<a class="pill link" href="${esc(String(l[1]))}" ${m?'':'target="_blank" rel="noopener"'}>${m?'&#9993;':'&#128279;'} ${esc(String(l[0]))}</a>`;}).join('');
-    body+='</div>';
-  }
-  const src=sources.length?`<div style="font-size:.72rem;color:var(--muted);margin-top:10px">Sources: ${sources.map(s=>esc(String(s))).join(' · ')}</div>`:'';
-  const ans=j.title
-    ?`<div class="ans"><div class="head"><span class="badge ${cat}">${cat}</span><div><h3>${esc(String(j.title))}</h3></div></div><div class="body">${body}${src}</div></div>`
-    :`<div class="ans"><div class="body">${body}${src}</div></div>`;
-  const lead=j.lead?`<p class="lead">${esc(String(j.lead))}</p>`:'';
-  const tag=`<div style="font-size:.68rem;color:var(--muted);margin-bottom:6px">&#10024; AI answer · grounded in the IBC knowledge base</div>`;
-  return tag+lead+ans;
-}
+/* The LLM endpoint is a ROUTER: it returns {found, safety, title, lead} — which
+   card answers the question + a one-line lead. We render the REAL card from the
+   local DATA array (so phone numbers / links never come from the model). */
+const AI_TAG='<div style="font-size:.68rem;color:var(--muted);margin-bottom:6px">&#10024; AI answer &middot; grounded in the IBC knowledge base</div>';
 
 /* LLM-first, with the local keyword matcher as instant fallback (offline / no API key / error) */
 async function respondToQuery(term){
@@ -946,12 +926,15 @@ async function respondToQuery(term){
   try{
     const j=await askLLM(term);
     clearTyping();
-    if(j&&j.found===false){
-      const lead=j.lead||"This isn't in the IBC knowledge base yet — check with your supervisor (SRA/RD) or the full staff handbook.";
-      addBot(`<p class="lead">${esc(lead)}</p>`,relatedChipsFor(term));
+    if(!j||j.found===false){
+      const lead=(j&&j.lead)||"This isn't in the IBC knowledge base yet — check with your supervisor (SRA/RD) or the full staff handbook.";
+      addBot(AI_TAG+`<p class="lead">${esc(lead)}</p>`,relatedChipsFor(term));
       return;
     }
-    addBot(llmCard(j),relatedChipsFor(term,j&&j.title));
+    const card=DATA.find(d=>d.title===j.title);
+    if(!card){keywordRespond(term);return;}   // title drift → safe local fallback
+    const lead=j.lead?esc(String(j.lead)):leadIn(card);
+    addBot(AI_TAG+`<p class="lead">${lead}</p>`+answerCard(card),relatedChipsFor(term,card.title));
   }catch(e){
     clearTyping();
     keywordRespond(term);   // endpoint unavailable → local matcher

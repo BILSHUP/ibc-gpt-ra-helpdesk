@@ -22,27 +22,34 @@ Community, Summer 2026). Built for an RA (Bishop Switzer) to share with the RA t
     "emotionALLy"). Search hay = title+tags+teaser only — **`steps[]` text is NOT
     indexed**, so put searchable synonyms in `tags`.
   - Categories: `safety`, `health`, `daily`, `logistics`, `contacts`.
-- **LLM endpoint (optional, `/api/ask`)** — a Vercel serverless function that answers
-  free-text questions with a single grounded Claude call (model `claude-haiku-4-5`).
-  - `index.html` is **LLM-first with the keyword matcher as instant fallback**: typed
-    questions hit `respondToQuery()` → `askLLM()` POSTs `/api/ask`; on **any** non-200 the
-    page falls back to the local `search()` matcher. So the site behaves **exactly as the
-    pure-keyword version until `ANTHROPIC_API_KEY` is set in Vercel** — then the LLM activates.
-    Exact-topic chips and Browse stay 100% local (no API call).
-  - `scripts/build-kb.mjs` regenerates `api/kb.json` from the `DATA` array (single source of
-    truth — run `node scripts/build-kb.mjs` after editing cards, or `npm run build:kb`).
-  - `api/ask.js` stuffs all cards into a **prompt-cached** system block, forces a JSON answer
-    (`{found,safety,lead,title,cat,steps,contacts,links,note,sources}`), and grounds strictly
-    in the KB (refuses if not covered). Returns `503 llm_disabled` when no key is set.
-  - `llmCard()` in `index.html` renders that JSON via the existing card UI — **all
-    model-supplied text is `esc()`-escaped**, links restricted to `http(s):`/`mailto:`,
-    phone digits sanitized. Small "✨ AI answer" tag distinguishes LLM answers from keyword ones.
-  - **Safety/cost:** in-memory per-IP rate limit (25/5min), `max_tokens` 900, `maxDuration`
-    15s (`vercel.json`). The hard backstop is the **spend limit the user sets on
-    console.anthropic.com** — the endpoint is public. Cost ≈ $0.003/question warm (cached KB),
-    ~$0.015 cold; a summer of normal use ≈ a few dollars.
-  - **To enable:** add `ANTHROPIC_API_KEY` in Vercel project → Settings → Environment
-    Variables (Production), redeploy. (Claude Code can't enter the key — user does this.)
+- **LLM endpoint (`/api/ask`) — LIVE.** A Vercel serverless function that uses Claude
+  (`claude-haiku-4-5`) as a **router**, not a generator. Active as of 2026-06-27 (key is set).
+  - **Why a router (cost):** the endpoint does NOT stuff all 53 cards into the prompt (that was
+    ~15k tokens/question ≈ $0.017 → would burn a $5 key in <1 week). Instead `api/ask.js`:
+    (1) keyword-**prefilters** the KB to the top 7 candidate cards (`prefilter()` mirrors the
+    client matcher, scoring title+tags+teaser), (2) sends only those candidates' title/teaser/
+    short-steps to Claude, (3) asks it to return only `{found, safety, title, lead}` — i.e. WHICH
+    card answers + a 1-line lead + a safety flag. **The model never emits phone numbers / links /
+    steps.** If the prefilter finds nothing, it skips the model call entirely (free).
+  - **Client renders the real card locally:** `respondToQuery()` → `askLLM()` POSTs `/api/ask`;
+    on success it looks up `DATA.find(d=>d.title===j.title)` and renders that card via the existing
+    `answerCard()` with the model's lead + a "✨ AI answer" tag. So card facts come from local
+    `DATA`, never the model (cheaper **and** zero chance of a hallucinated number). The model's
+    `lead` is `esc()`-escaped. A bad/unknown title, any non-200, or a thrown fetch → instant local
+    `keywordRespond()` fallback. The site behaves like the pure-keyword version whenever the
+    endpoint is unavailable (incl. before a key is set: returns `503 llm_disabled`).
+  - **Cost:** ~1,000 input + ~60 output tokens/question ≈ **$0.0013/question** → a **$5 key lasts
+    a full summer** (~3,500–3,800 questions; 10 RAs × 5/day fits). Prefilter misses on slang the
+    tags don't cover (e.g. had to add "wasted/blacked out" to the intoxication card) — fix by
+    enriching that card's `tags`, then `npm run build:kb`. The hard backstop is the **spend cap
+    the user set on console.anthropic.com** ($5 loaded).
+  - **Safety rails:** in-memory per-IP rate limit (20/5min), `max_tokens` 220, `maxDuration` 15s
+    (`vercel.json`), question capped at 300 chars, returned title validated against the KB.
+  - `scripts/build-kb.mjs` regenerates `api/kb.json` (incl. `tags` for the server prefilter) from
+    the `DATA` array — single source of truth. Run `node scripts/build-kb.mjs` (or `npm run
+    build:kb`) after editing cards, **and redeploy** so the function ships the new KB.
+  - **Model:** Haiku 4.5 is plenty for routing; bumping to Sonnet/Opus barely changes routing
+    quality but costs more — keep Haiku unless answers regress. One-line change in `api/ask.js`.
 
 ## Run & deploy
 - **Local preview:** `.claude/launch.json` defines a `static` server (`npx serve -l 8000`);
@@ -106,12 +113,12 @@ them, so they stay current.
    wasn't enabled) and can't be transcribed here (no audio→text). Use the **slide decks** instead
    (download via Canvas file API `url`, read the PDF) — that's how the deck content above was added.
 4. **More scenarios.** Keep expanding `DATA` with situations the RA handles often.
-5. ~~**Real LLM chatbot.**~~ ✅ Built (2026-06-27) — `/api/ask` serverless function with a single
-   grounded `claude-haiku-4-5` call; KB stuffed into a cached prompt; keyword matcher kept as
-   instant fallback. See the **LLM endpoint** bullet under "What's built." Deployed and live but
-   **inert until the user adds `ANTHROPIC_API_KEY` in Vercel + sets an Anthropic spend cap.**
-   Optional next: switch model to `claude-sonnet-4-6`/`claude-opus-4-8` in `api/ask.js` if answer
-   quality needs it; add a usage log; expose a "report a wrong answer" path.
+5. ~~**Real LLM chatbot.**~~ ✅ **LIVE** (2026-06-27) — `/api/ask` router endpoint on
+   `claude-haiku-4-5`; key is set in Vercel + a $5 spend cap is loaded on console.anthropic.com.
+   Re-architected from "stuff all cards" to a **prefilter→route→render-locally** design so $5
+   lasts the summer (~$0.0013/question). See the **LLM endpoint** bullet under "What's built."
+   Optional next: add a usage/cost log; expose a "report a wrong answer" path; enrich card `tags`
+   with slang as misses surface (router recall = only as good as the tags).
 
 ## Conventions
 - Keep it a single static file unless there's a strong reason to add a framework.

@@ -1,69 +1,78 @@
-// IBC GPT — serverless answer endpoint.
-// Grounds every answer in the 53 knowledge cards (api/kb.json), returns JSON the
-// front-end renders as an answer card. The site works without this endpoint:
-// index.html falls back to its local keyword matcher whenever /api/ask errors
-// (e.g. before ANTHROPIC_API_KEY is set in Vercel).
+// IBC GPT — serverless ROUTER endpoint (cost-optimized).
+//
+// Instead of stuffing all 53 cards into every request and asking the model to
+// rewrite the whole answer (~15k tokens in, ~450 out → ~$0.017/question, which
+// would burn a $5 key in under a week), this endpoint:
+//   1. keyword-prefilters the knowledge base to a handful of candidate cards,
+//   2. sends ONLY those candidates' title/teaser/steps to Claude,
+//   3. asks it to just PICK the best card + write a 1-line lead + flag safety.
+// The front-end then renders the real card from its own local copy, so phone
+// numbers / links never pass through the model (cheaper AND no hallucinated
+// facts). Cost ≈ $0.0015/question → a $5 key lasts a summer of normal use.
+//
+// The site works without this endpoint: index.html falls back to its local
+// keyword matcher whenever /api/ask errors (e.g. before ANTHROPIC_API_KEY is set).
 import Anthropic from '@anthropic-ai/sdk';
 import { readFileSync } from 'fs';
 
 const kb = JSON.parse(readFileSync(new URL('./kb.json', import.meta.url)));
 
-// --- model: Haiku 4.5 for cost. Change this one line to claude-opus-4-8 or
-// --- claude-sonnet-4-6 for higher answer quality (a few cents more per question).
+// --- model: Haiku 4.5 — cheapest current model, plenty for routing. Routing
+// --- quality barely differs from Sonnet/Opus here, so this stays on Haiku.
 const MODEL = 'claude-haiku-4-5';
-const MAX_TOKENS = 900;
+const MAX_TOKENS = 220;        // output is only {found,safety,lead,title} — tiny
+const N_CANDIDATES = 7;        // cards sent to the model per question
+const STEPS_SNIPPET = 200;     // chars of steps shown per candidate
 
-// Serialize the knowledge base once (module scope) so it stays byte-identical
-// across requests → the cache_control block below actually caches.
-const KB_TEXT = kb.map((c) => {
-  let s = `### ${c.title}  [${c.cat}]\n${c.teaser}`;
-  if (c.steps?.length) s += '\nSteps: ' + c.steps.map((x, n) => `(${n + 1}) ${x}`).join(' ');
-  if (c.details) s += '\nDetails: ' + c.details;
-  if (c.contacts?.length) s += '\nPhones: ' + c.contacts.map((p) => `${p[0]}=${p[1]}`).join('; ');
-  if (c.links?.length) s += '\nLinks: ' + c.links.map((l) => `${l[0]}=${l[1]}`).join('; ');
-  if (c.note) s += '\nNote: ' + c.note;
-  return s;
-}).join('\n\n');
+// --- lightweight keyword prefilter (mirrors index.html's matcher) -------------
+const STOP = new Set("a an the is are am was were be been being to of in on at it its this that these those my your our their his her them they i im we he she you with and or for as do does did has have had will would can could should student students someone somebody anybody person resident residents kid kids guy girl boy how what when where who why help need needs got get all any find finding locate look looking want wants like about info".split(/\s+/));
 
-const SYSTEM = `You are IBC GPT, the assistant for Columbia University's IBC Pre-College Program (Internship in Building Community, Summer 2026). Your users are Resident Advisors (RAs/SRAs) and Program Assistants who need fast, accurate, policy-grounded answers, often during a live situation.
+function prefilter(term) {
+  let words = term.toLowerCase().replace(/[^a-z0-9'\s]/g, ' ').split(/\s+/).filter(Boolean);
+  const meaningful = words.filter((w) => !STOP.has(w));
+  if (meaningful.length) words = meaningful;
+  if (!words.length) return [];
+  return kb.map((c, i) => {
+    const hay = (c.title + ' ' + (c.tags || '') + ' ' + c.teaser).toLowerCase();
+    const titleL = c.title.toLowerCase();
+    let score = 0;
+    words.forEach((w) => {
+      const re = new RegExp('\\b' + w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b');
+      if (re.test(hay)) score += 2; else if (hay.includes(w)) score += 1;
+      if (re.test(titleL)) score += 2; else if (titleL.includes(w)) score += 1;
+    });
+    return { c, i, score };
+  }).filter((x) => x.score > 0).sort((a, b) => b.score - a.score).slice(0, N_CANDIDATES);
+}
 
-Answer ONLY from the knowledge cards in <knowledge_base>. Every card was transcribed from official IBC sources. Never invent or guess phone numbers, URLs, names, policies, hours, or dollar amounts — if a fact is not in a card, do not state it.
+const SYSTEM = `You are IBC GPT, the assistant for Columbia University's IBC Pre-College Program (Internship in Building Community, Summer 2026). Your users are Resident Advisors (RAs/SRAs) handling live residential situations.
 
-Return a SINGLE JSON object and nothing else (no markdown, no prose around it), with this exact shape:
+You are given the user's question and a short list of CANDIDATE knowledge cards (each was transcribed from official IBC sources). Your job is ONLY to route: pick the single card that best answers the question, write a brief conversational lead-in, and flag safety. You do NOT write the steps, phone numbers, or links — the app renders those from the chosen card.
+
+Return a SINGLE JSON object and nothing else:
 {
-  "found": boolean,          // true if a card answers the question
-  "safety": boolean,         // true if the question involves an emergency, medical issue, mental-health crisis, Title IX / gender-based misconduct, or mandatory reporting / protection of minors
-  "lead": string,            // 1-2 plain sentences answering directly. If safety is true, start with: "If this is happening right now, act first — call the numbers below, then tell your supervisor (SRA/RD on duty)."
-  "title": string,           // the title of the card you used (or "" )
-  "cat": string,             // one of: safety | health | daily | logistics | contacts
-  "steps": string[],         // the actionable answer in short steps, in plain English, grounded in the card
-  "contacts": [[string,string]], // [label, phone digits] pulled ONLY from the cards you used (digits only, no spaces)
-  "links": [[string,string]],    // [label, url] pulled ONLY from the cards you used
-  "note": string,            // optional caveat from the card, else ""
-  "sources": string[]        // titles of the card(s) you used
+  "found": boolean,   // true only if one of the candidate cards genuinely answers the question
+  "safety": boolean,  // true if the question involves an emergency, medical issue, mental-health crisis, Title IX / gender-based misconduct, or protection of minors
+  "title": string,    // the EXACT title of the chosen card, copied verbatim — or "" if none fits
+  "lead": string      // 1 short, calm sentence introducing the answer. If safety is true, begin with: "If this is happening right now, act first — call the numbers below, then tell your supervisor (SRA/RD on duty)."
 }
 
 Rules:
-- Use phone numbers and URLs ONLY as they appear in the cards. Copy digits/URLs verbatim.
-- If no card answers the question, set "found": false, "lead" to: "This isn't in the IBC knowledge base yet — check with your supervisor (SRA/RD) or the full staff handbook.", and leave the other fields empty ([] or "").
-- Keep it tight. Plain language, no slang. Don't pad.
-- You may combine 1-3 closely related cards when the question spans them.
-
-<knowledge_base>
-${KB_TEXT}
-</knowledge_base>`;
+- Choose ONLY from the candidate cards. Copy the chosen "title" character-for-character.
+- If none of the candidates actually answers the question, set found=false, title="", and lead="This isn't in the IBC knowledge base yet — check with your supervisor (SRA/RD) or the full staff handbook."
+- Keep the lead to one plain sentence. No markdown, no lists, no phone numbers, no links.`;
 
 // --- best-effort per-IP rate limit (in-memory; resets on cold start).
 // The hard backstop is the spend limit you set on console.anthropic.com.
 const WINDOW_MS = 5 * 60 * 1000;
-const MAX_PER_WINDOW = 25;
+const MAX_PER_WINDOW = 20;
 const hits = new Map();
 function rateLimited(ip) {
   const now = Date.now();
   const arr = (hits.get(ip) || []).filter((t) => now - t < WINDOW_MS);
   arr.push(now);
   hits.set(ip, arr);
-  if (hits.size > 5000) hits.clear(); // crude memory cap
+  if (hits.size > 5000) hits.clear();
   return arr.length > MAX_PER_WINDOW;
 }
 
@@ -80,23 +89,43 @@ export default async function handler(req, res) {
 
   let body = req.body;
   if (typeof body === 'string') { try { body = JSON.parse(body); } catch { body = {}; } }
-  const question = (body?.q || '').toString().slice(0, 500).trim();
+  const question = (body?.q || '').toString().slice(0, 300).trim();
   if (!question) return res.status(400).json({ error: 'empty_question' });
+
+  // Prefilter locally — if nothing keyword-matches, skip the model call entirely
+  // (saves money) and let the client show its own "no match" message.
+  const cands = prefilter(question);
+  if (!cands.length) return res.status(200).json({ found: false, safety: false, title: '', lead: "This isn't in the IBC knowledge base yet — check with your supervisor (SRA/RD) or the full staff handbook." });
+
+  const candText = cands.map(({ c }, n) => {
+    let s = `${n + 1}. "${c.title}" [${c.cat}] — ${c.teaser}`;
+    if (c.steps?.length) s += ` // ${c.steps.join(' ').slice(0, STEPS_SNIPPET)}`;
+    return s;
+  }).join('\n');
 
   try {
     const client = new Anthropic(); // reads ANTHROPIC_API_KEY
     const resp = await client.messages.create({
       model: MODEL,
       max_tokens: MAX_TOKENS,
-      system: [{ type: 'text', text: SYSTEM, cache_control: { type: 'ephemeral' } }],
-      messages: [{ role: 'user', content: question }],
+      system: SYSTEM,
+      messages: [{ role: 'user', content: `Question: ${question}\n\nCandidate cards:\n${candText}` }],
     });
     const text = resp.content.filter((b) => b.type === 'text').map((b) => b.text).join('').trim();
     const jsonStr = text.replace(/^```(?:json)?/i, '').replace(/```$/, '').trim();
     let answer;
     try { answer = JSON.parse(jsonStr); }
     catch { return res.status(502).json({ error: 'bad_model_output' }); }
-    return res.status(200).json(answer);
+    // Guard: the chosen title must be a real card title (no fabrication).
+    if (answer.found && !kb.some((c) => c.title === answer.title)) {
+      answer.found = false; answer.title = '';
+    }
+    return res.status(200).json({
+      found: !!answer.found,
+      safety: !!answer.safety,
+      title: typeof answer.title === 'string' ? answer.title : '',
+      lead: typeof answer.lead === 'string' ? answer.lead.slice(0, 400) : '',
+    });
   } catch (e) {
     const status = e?.status || 500;
     return res.status(status >= 400 && status < 600 ? status : 500).json({ error: 'upstream', detail: String(e?.message || e).slice(0, 200) });
