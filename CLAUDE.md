@@ -14,7 +14,7 @@ Community, Summer 2026). Built for an RA (Bishop Switzer) to share with the RA t
     `DATA` + scoring under a chat front-end.)
   - A `DATA` array (JS, near the bottom of the file) holds every entry as
     `{cat, title, tags, teaser, steps[], custom?, contacts[[label,telDigits]], links[[label,url]], note?}`.
-    **44 entries** as of 2026-06-27.
+    **53 entries** as of 2026-06-27.
   - **To add/edit content, edit the `DATA` array.** `tags` drives the live search; add
     synonyms a stressed RA might type. `contacts` render as tap-to-call buttons (digits only).
   - The matcher filters a `STOP` set of common/intent words and scores **whole-word**
@@ -70,8 +70,17 @@ them, so they stay current.
    Nextsource) → cards. Training **slide decks** transcribed via download→PDF read: Emergency
    Response Protocols + Working with International Students done (missing-student protocol,
    incident-severity matrix, NYPD reporting, parental-notification nuance, POM Exec Dir Rachel
-   Ferrari, 5 int'l-student challenge areas). Remaining decks (Mediation, Policy Enforcement,
-   Navigating Boundaries, Res Life, etc.) not yet mined.
+   Ferrari, 5 int'l-student challenge areas). **Doc sweep done** (2026-06-27): also mined Health
+   Protocols, Policy Enforcement & Student Conduct (ICE/checkpoint protocol, confront-a-violation,
+   sanctions), Conference Housing/Maintenance (Hospitality Desk + minor/guided-access note),
+   Shift Coverage (lobby/floater, swap approvers), BCD Debrief/IR Writing, Navigating Boundaries
+   (money/crush/social-media/mandated-reporter), and the SPS Casual Employee Policies (20-hr cap).
+   **Deliberately skipped** (orientation/reference/low-yield): IBC Welcome, RAs & SRAs, Intro to
+   Res Life / Program Office, Commuter AA, Race & Identity, Community Building, Leading Through
+   Conflict, Residential/Major Programming, Columbia Travels, Columbia Dining, CSA/CLERY,
+   Disability/Pronouns guides, sample-programs/icebreakers/door-decs. Mediation deck overlaps the
+   existing mediation card; NYC Situational Awareness overlaps the int'l-student NYC + excursion
+   cards. Re-mine these if a specific gap surfaces.
 3. **Session recordings.** Zoom training recordings have **no auto-transcript** (transcription
    wasn't enabled) and can't be transcribed here (no audio→text). Use the **slide decks** instead
    (download via Canvas file API `url`, read the PDF) — that's how the deck content above was added.
