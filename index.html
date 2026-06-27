@@ -109,6 +109,10 @@
   .send{flex:0 0 auto;width:46px;height:46px;border:none;border-radius:50%;background:var(--blue);color:#fff;
         font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
   .send:active{background:var(--blue-dark)}
+
+  /* visible keyboard focus ring on every interactive control (WCAG 2.4.7) */
+  :focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+  .send:focus-visible{outline:3px solid #fff;outline-offset:2px}
 </style>
 </head>
 <body>
