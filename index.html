@@ -6,18 +6,20 @@
 <title>IBC-GPT · RA Help Desk</title>
 <style>
   :root{
-    --blue:#1d4f91;        /* Columbia blue */
-    --blue-dark:#143a6b;
-    --light:#eef4fb;
+    --cu-blue:#b9d9eb;     /* Columbia Blue — the signature accent */
+    --cu-sky:#5b9bd5;      /* mid sky-blue */
+    --blue:#13428c;        /* primary deep blue — accessible on white */
+    --blue-dark:#0a2a5e;   /* navy — hover/active + header */
+    --light:#e9f3fb;       /* pale Columbia-blue tint */
     --red:#c0392b;
     --red-dark:#9b2618;
     --amber:#b7791f;
     --green:#1f7a4d;
-    --ink:#1a2230;
-    --muted:#5a6678;
-    --line:#dce4ef;
+    --ink:#16243d;
+    --muted:#586580;
+    --line:#d6e3f2;
     --card:#ffffff;
-    --bg:#f4f7fb;
+    --bg:#eef5fc;
   }
   *{box-sizing:border-box}
   html,body{height:100%}
@@ -27,11 +29,13 @@
   /* full-height app shell: header + emergency pinned top, chat scrolls, composer pinned bottom */
   .app{display:flex;flex-direction:column;height:100dvh;max-width:920px;margin:0 auto;background:var(--bg)}
 
-  header{background:linear-gradient(135deg,var(--blue),var(--blue-dark));color:#fff;padding:12px 16px;flex:0 0 auto}
+  header{background:linear-gradient(135deg,#1b5aa6,var(--blue-dark));color:#fff;padding:15px 18px;flex:0 0 auto;
+         border-bottom:3px solid var(--cu-blue)}
   .brand{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-  .brand h1{font-size:1.1rem;margin:0;font-weight:700;letter-spacing:.2px}
-  .brand .tag{font-size:.68rem;background:rgba(255,255,255,.18);padding:3px 8px;border-radius:20px;font-weight:600}
-  .sub{font-size:.76rem;opacity:.9;margin-top:3px}
+  .brand h1{font-size:1.14rem;margin:0;font-weight:700;letter-spacing:-.2px}
+  .brand .tag{font-size:.64rem;background:var(--cu-blue);color:var(--blue-dark);padding:3px 9px;border-radius:20px;
+              font-weight:800;letter-spacing:.4px;text-transform:uppercase}
+  .sub{font-size:.76rem;opacity:.92;margin-top:4px}
 
   /* emergency strip (always visible) */
   .estrip{flex:0 0 auto;background:#fff;border-bottom:1px solid var(--line);
@@ -56,7 +60,7 @@
   .msg{margin:0 0 14px;display:flex;flex-direction:column;animation:rise .22s ease}
   @keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
   .msg.user{align-items:flex-end}
-  .bubble{max-width:88%;border-radius:16px;padding:11px 14px;font-size:.92rem;box-shadow:0 1px 2px rgba(20,40,80,.06)}
+  .bubble{max-width:88%;border-radius:16px;padding:11px 14px;font-size:.92rem;box-shadow:0 2px 8px rgba(13,42,97,.06)}
   .msg.bot .bubble{background:var(--card);border:1px solid var(--line);border-top-left-radius:5px}
   .msg.user .bubble{background:var(--blue);color:#fff;border-top-right-radius:5px}
   .msg.user .bubble{font-weight:600}
@@ -64,8 +68,10 @@
   .who{font-size:.66rem;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:0 0 4px;font-weight:800}
 
   /* answer card inside a bot bubble */
-  .ans{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;max-width:96%}
-  .ans .head{padding:11px 14px;display:flex;align-items:flex-start;gap:9px;background:var(--light)}
+  .ans{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;max-width:96%;
+       box-shadow:0 3px 14px rgba(13,42,97,.07)}
+  .ans .head{padding:12px 14px;display:flex;align-items:flex-start;gap:9px;
+             background:linear-gradient(180deg,var(--light),#fff);border-bottom:1px solid var(--line)}
   .badge{flex:0 0 auto;font-size:.6rem;font-weight:800;letter-spacing:.5px;text-transform:uppercase;
          padding:4px 7px;border-radius:6px;margin-top:2px;color:#fff;background:var(--blue)}
   .badge.health{background:var(--green)}.badge.safety{background:var(--red)}
@@ -85,9 +91,10 @@
 
   /* suggestion chips inside bot messages */
   .sugs{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
-  .sug{font-size:.8rem;padding:9px 14px;border-radius:18px;border:1px solid var(--blue);
-       background:#fff;color:var(--blue-dark);cursor:pointer;font-weight:600;line-height:1.2;min-height:44px}
-  .sug:hover{background:var(--light)}
+  .sug{font-size:.8rem;padding:9px 14px;border-radius:18px;border:1px solid var(--cu-sky);
+       background:#fff;color:var(--blue-dark);cursor:pointer;font-weight:600;line-height:1.2;min-height:44px;
+       transition:background .15s,border-color .15s}
+  .sug:hover{background:var(--light);border-color:var(--blue)}
   .sug.cat{border-color:var(--line);color:var(--muted)}
 
   /* typing dots */
@@ -107,8 +114,10 @@
      box-shadow:0 1px 3px rgba(0,0,0,.04)}
   #q:focus{border-color:var(--blue)}
   .send{flex:0 0 auto;width:46px;height:46px;border:none;border-radius:50%;background:var(--blue);color:#fff;
-        font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
-  .send:active{background:var(--blue-dark)}
+        font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;
+        box-shadow:0 2px 8px rgba(19,66,140,.35);transition:background .15s,transform .1s}
+  .send:hover{background:var(--blue-dark)}
+  .send:active{background:var(--blue-dark);transform:scale(.94)}
 
   /* visible keyboard focus ring on every interactive control (WCAG 2.4.7) */
   :focus-visible{outline:3px solid var(--blue);outline-offset:2px}
