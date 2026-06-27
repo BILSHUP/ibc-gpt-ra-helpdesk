@@ -196,14 +196,14 @@ const DATA = [
  {cat:"safety",title:"Suspected abuse or maltreatment of a minor",
   tags:"abuse maltreatment minor child protection pom mandated reporter danger hotline neglect",
   teaser:"You're a mandated reporter. Immediate danger → 911. Then NY State Hotline + POM form + Public Safety.",
-  steps:["All staff are <b>mandated reporters</b> — you must report reasonable suspicion immediately.",
-         "If a child is in <b>immediate danger</b>, call <b>911</b>.",
-         "Call the <b>NY State Child Abuse &amp; Maltreatment Hotline: 800-342-3720</b>.",
-         "Complete the <b>SPS Protection of Minors report form</b> (Maxient).",
-         "Call the Department of Public Safety: <b>212-854-5555</b> (Morningside).",
-         "If you don't see a sufficient response, call Public Safety again to share your concerns."],
-  contacts:[["NY State Hotline","8003423720"],["911","911"],["Public Safety","2128545555"]],
-  links:[["Protection of Minors report (Maxient)","https://cm.maxient.com/reportingform.php?ColumbiaUniv&layout_id=19"],["Protection of Minors policy & website","https://compliance.columbia.edu/content/protection-minors"]]},
+  steps:["All staff are <b>mandated reporters</b> — report reasonable suspicion immediately.",
+         "If a child is in <b>immediate danger</b>, call <b>911</b> and, as appropriate, Public Safety <b>212-854-5555</b> (Morningside).",
+         "Notify the <b>Director / Assistant Director of Student Affairs</b>, who consults the <b>Executive Director of Protection of Minors (Rachel Ferrari)</b> on reporting procedures.",
+         "Call the <b>NY State Child Abuse &amp; Maltreatment Hotline: 800-342-3720</b> — and <b>write down the ID number and the representative's name.</b>",
+         "As directed, call Public Safety and give them the hotline <b>ID number and representative name</b>.",
+         "Submit the <b>Protection of Minors report</b> (Maxient) — include documentation, the hotline ID number, and the names of any Public Safety/NYPD officers who responded."],
+  contacts:[["NY State Hotline","8003423720"],["911","911"],["Public Safety","2128545555"],["POM Exec Dir (R. Ferrari)","2128533731"]],
+  links:[["Protection of Minors report (Maxient)","https://cm.maxient.com/reportingform.php?ColumbiaUniv&layout_id=19"],["Protection of Minors policy & website","https://compliance.columbia.edu/content/protection-minors"],["Email POM Exec Director","mailto:rf2814@columbia.edu"]]},
 
  {cat:"safety",title:"Disruptive, aggressive, or threatening student",
   tags:"aggressive angry violent threat yelling fight altercation disruptive hostile outburst confrontation",
@@ -258,6 +258,52 @@ const DATA = [
          "See the full Active Shooter protocol in the RA Handbook."],
   contacts:[["911","911"],["Public Safety","2128545555"]],
   links:[["Public Safety Active Shooter Guidelines (PDF)","https://publicsafety.columbia.edu/sites/default/files/content/ActiveShooterCommunityResponseGuidelines.pdf"],["Public Safety emergency protocols","https://publicsafety.columbia.edu/emergency-protocols"],["Full protocol (Handbook)","https://docs.google.com/document/d/19fq9yWgzrpYA5QVgYNfs5YgBhrdauUBGunhgK4X4mg8/edit"]]},
+
+ {cat:"safety",title:"Student is missing / didn't check in",
+  tags:"missing student can't find unreachable left building went for a walk didn't sign in disappeared not back search lost gone curfew no show",
+  teaser:"<30 min: RA calls them + notify RD. >30 min: RD owns outreach. >1 hr after curfew: Director notifies parents + Public Safety.",
+  steps:["Residential staff proactively reach out to any student who hasn't signed in at in-building or in-room curfew.",
+         "<b>Missing under 30 minutes:</b> the RA/Senior RA makes a <b>direct phone call</b> to the student and notifies the RD on duty.",
+         "<b>Missing over 30 minutes:</b> the <b>Resident Director</b> takes over outreach.",
+         "<b>Missing over 1 hour after curfew:</b> contact the <b>Director on duty</b>, who notifies the parents/guardian and contacts <b>Public Safety</b> to help locate the student.",
+         "File a Maxient report. (Missing under 60 min is a Medium incident; over 60 min is Major.)"],
+  contacts:[["RD on Duty","3324655827"],["Carman On-Duty SRA","2128140027"],["Public Safety","2128545555"]],
+  links:[["Incident Report (Maxient)","https://cm.maxient.com/reportingform.php?ColumbiaUniv&layout_id=11"]]},
+
+ {cat:"safety",title:"Incident severity & who responds",
+  tags:"incident severity level minor medium major classification escalation who responds matrix low high tier notetaker chain how serious",
+  teaser:"Minor / Medium / Major — the bigger it is, the higher it escalates. RA is always on site; RD, Director, then Senior Leadership loop in by severity.",
+  steps:["<b>Minor</b> (roommate conflict, curfew, minor policy/health, ongoing depression/anxiety): the RA addresses it, notifies the RD (on campus) or Director (off campus), and files a Maxient report.",
+         "<b>Medium</b> (urgent non-emergency medical, hospital visit, escalated conflict, disruptive behavior, serious policy violation, theft, missing under 60 min): RA + RD on site; the Director is informed.",
+         "<b>Major</b> (hospitalization, urgent mental health, assault, drugs/alcohol, building/campus emergency, missing over 60 min, student death, Protection of Minors): RA + RD + Director on site; Senior Leadership informed.",
+         "For a major incident, the rhythm is: <b>stay with the student</b>, make your calls (Public Safety on campus / 911 off campus, then RD/Director), then become the <b>notetaker</b> once your supervisor arrives, and file a Maxient report."],
+  custom:`<h4>Who responds, by severity</h4><ul>
+    <li><b>Low:</b> RA / Senior RA on site · RD / Coordinator informed</li>
+    <li><b>Medium:</b> RA + RD / Coordinator on site · Director informed</li>
+    <li><b>High:</b> RA + RD + Director on site · Senior Leadership informed</li></ul>`,
+  contacts:[["Public Safety (emergency)","2128545555"],["RD on Duty","3324655827"]],
+  links:[["Incident Report (Maxient)","https://cm.maxient.com/reportingform.php?ColumbiaUniv&layout_id=11"]]},
+
+ {cat:"safety",title:"Calling NYPD / police (theft, robbery, off-campus crime)",
+  tags:"nypd police precinct theft robbery stolen crime report shoplifting off campus mugged file report law enforcement assault harassment",
+  teaser:"Off-campus crime → nearest NYPD precinct ASAP. On-campus crime in progress → Public Safety then 911. Already happened → Public Safety escorts you to the precinct.",
+  steps:["<b>Off-campus incidents</b> (theft, harassment, robbery): immediately contact or go to the <b>nearest NYPD precinct</b> to file a report — don't delay.",
+         "<b>On campus, crime in progress / emergency:</b> call <b>Public Safety 212-854-5555</b> first, then <b>911</b> to request NYPD.",
+         "<b>On campus, already occurred:</b> report to <b>Public Safety</b>, who will escort you to the right precinct to file.",
+         "You may have to call NYPD yourself or <b>explicitly ask</b> for NYPD involvement.",
+         "On an excursion: report to MTA/police before leaving the station, stay for the report, call the Director on duty, and file a Maxient."],
+  contacts:[["Public Safety","2128545555"],["911","911"],["RD on Duty","3324655827"]],
+  links:[["Incident Report (Maxient)","https://cm.maxient.com/reportingform.php?ColumbiaUniv&layout_id=11"]]},
+
+ {cat:"safety",title:"When (and when not) to call a parent",
+  tags:"parent parents notify notification guardian call home tell parents communication when not attendance behavior sexual contact abuse confidential family",
+  teaser:"Usually notify parents on attendance/health/behavior — but the student's safety at home comes first; loop in admin before notifying in sensitive cases.",
+  steps:["In most cases staff communicate attendance, health, and behavior issues to a parent/guardian — but always weigh the student's <b>safety at home</b> and the right timing and method.",
+         "Some situations where <b>safety takes precedence over notifying parents</b>: <b>consensual student–student sexual contact</b> (if telling home could endanger the student), and <b>Protection of Minors</b> (a child reporting abuse at home).",
+         "For abuse-at-home / POM: contact the <b>Director of Student Affairs (Programs for Minors)</b> <b>before</b> deciding whether to call parents — there may be a continued threat at home.",
+         "Parental-notification calls aren't made alone — when unsure, consult your RD/Director."],
+  contacts:[],
+  links:[]},
 
  /* ============ DAILY OPS ============ */
  {cat:"daily",title:"Student is late to curfew",
@@ -317,15 +363,21 @@ const DATA = [
   links:[["Incident Report (Maxient)","https://cm.maxient.com/reportingform.php?ColumbiaUniv&layout_id=11"]]},
 
  {cat:"daily",title:"International student homesick / struggling to adjust",
-  tags:"international homesick missing home culture shock language slang withdrawn left out belonging adjust food family",
-  teaser:"Validate, connect them to community + Wellness, check in regularly. Escalate if distress deepens.",
-  steps:["Common signs: withdrawing, missing home/food/family, struggling with fast English/slang, feeling left out, or considering going home.",
-         "Listen and validate without minimizing. Normalize the adjustment curve and help them find belonging (community groups, clubs, buddies on the floor).",
-         "Loop in your SRA and the <b>Wellness Coordinator</b> for ongoing support; check in regularly rather than one-and-done.",
-         "If it deepens into emotional distress (see that card), console and submit a Maxient + contact Wellness right away.",
-         "See the International Student Scenarios doc for worked examples (Wenhan, Mei, Hasna, Mehmet, Lucía)."],
+  tags:"international homesick missing home culture shock language slang english accent withdrawn left out belonging adjust food family academic participation plagiarism cheating subway safe nyc tipping tax banking visa customs welcome inclusion racism office hours",
+  teaser:"Validate, normalize the adjustment curve, connect them to community + Wellness, and check in proactively.",
+  steps:["Watch for: loss of appetite, skipping social events or class, missing home/food/family, withdrawing, or talk of going home.",
+         "Normalize the adjustment curve (honeymoon → frustration → adjustment → adaptation) and validate without minimizing. They're only here a short time, so <b>check in proactively and repeatedly</b>.",
+         "Loop in your SRA and the <b>Wellness Coordinator</b> for ongoing support; if it deepens into distress, console and file a Maxient + contact Wellness right away.",
+         "Help them find belonging — community groups, clubs, study partners, buddies on the floor."],
+  custom:`<h4>Common challenges &amp; how to help</h4><ul>
+     <li><b>Culture shock / homesickness:</b> normalize their feelings, share resources, keep checking in.</li>
+     <li><b>Academic adjustment:</b> US classes expect participation/discussion, and what counts as “plagiarism/cheating” differs by country. Encourage office hours and asking instructors what's allowed.</li>
+     <li><b>Communication:</b> go easy on slang/idioms (sports idioms especially), check for understanding, don't correct their English, and watch for inside jokes in groups.</li>
+     <li><b>Living in NYC:</b> help with subway/MetroCard, tipping &amp; sales tax, and where to shop. If they're anxious about subway/city safety, listen without judgement, give context vs. sensational news, and share street-smart tips.</li>
+     <li><b>Visa / travel / belonging:</b> be welcoming, celebrate differences without “othering,” redirect hurtful jokes, and thank students when they're vulnerable enough to share.</li>
+   </ul>`,
   contacts:[],
-  links:[["International Student Scenarios","https://docs.google.com/document/d/1s-tU0ZuiuGHfNcT3OjYyBruk2YIASNWzhdtLOOu4Fc0/edit"]]},
+  links:[["SPS International (resources)","https://sps.columbia.edu/students/student-advising/sps-international"],["International Student Scenarios","https://docs.google.com/document/d/1s-tU0ZuiuGHfNcT3OjYyBruk2YIASNWzhdtLOOu4Fc0/edit"],["Email SPS Int'l Advising (T. Trueheart)","mailto:tt2707@columbia.edu"]]},
 
  {cat:"daily",title:"Run a floor meeting",
   tags:"floor meeting agenda hall meeting residents announcements community building weekly check-in",
@@ -676,7 +728,13 @@ function search(term){
     const hay=(d.title+' '+d.tags+' '+d.teaser).toLowerCase();
     const titleL=d.title.toLowerCase();
     let score=0;
-    words.forEach(w=>{if(hay.includes(w))score++;if(titleL.includes(w))score+=2;});
+    words.forEach(w=>{
+      const re=new RegExp('\\b'+w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b');
+      // whole-word matches score higher than loose substring matches
+      // (so "safe" doesn't win on "Safety", or "all" on "emotionALLy")
+      if(re.test(hay))score+=2; else if(hay.includes(w))score+=1;
+      if(re.test(titleL))score+=2; else if(titleL.includes(w))score+=1;
+    });
     return {d,i,score};
   }).filter(x=>x.score>0).sort((a,b)=>b.score-a.score);
 }
